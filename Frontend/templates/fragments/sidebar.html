@@ -1,0 +1,449 @@
+<div th:fragment="sidebar(activePage)" class="sidebar">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            /* Vibrant Colorful Core Tokens */
+            --primary-glow: rgba(99, 102, 241, 0.15);
+            --secondary-glow: rgba(192, 132, 252, 0.15);
+
+            /* Module Colors for Colorful Tabs */
+            --color-dashboard: #6366f1;
+            /* Indigo */
+            --color-analytics: #22c55e;
+            /* Emerald */
+            --color-inventory: #f59e0b;
+            /* Amber */
+            --color-users: #ec4899;
+            /* Pink */
+            --color-profile: #8b5cf6;
+            /* Violet */
+
+            /* Vibrant Gradients for Premium Pills */
+            --grad-dashboard: linear-gradient(135deg, #6366f1, #a855f7);
+            --grad-analytics: linear-gradient(135deg, #10b981, #3b82f6);
+            --grad-inventory: linear-gradient(135deg, #f59e0b, #ef4444);
+            --grad-users: linear-gradient(135deg, #ec4899, #8b5cf6);
+            --grad-profile: linear-gradient(135deg, #8b5cf6, #ec4899);
+            --grad-danger: linear-gradient(135deg, #ef4444, #f43f5e);
+
+            --mesh-gradient: radial-gradient(at 0% 0%, hsla(253, 16%, 7%, 1) 0, transparent 50%),
+                radial-gradient(at 50% 0%, hsla(225, 39%, 30%, 1) 0, transparent 50%),
+                radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 1) 0, transparent 50%);
+
+            /* Dark Theme (Default) */
+            --bg-body: #0f172a;
+            --bg-sidebar: #0f172a;
+            --border-sidebar: #1e293b;
+            --text-main: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-primary: #818cf8;
+            --accent-secondary: #c084fc;
+            --primary: #818cf8;
+            --accent: #c084fc;
+            --primary-hover: #6366f1;
+            --nav-item-hover-bg: rgba(255, 255, 255, 0.05);
+            --logout-bg-hover: rgba(239, 68, 68, 0.1);
+            --logout-border-hover: rgba(239, 68, 68, 0.2);
+            --logout-text: #fca5a5;
+            --logout-text-hover: #ef4444;
+            --card-bg: rgba(30, 41, 59, 0.5);
+            --text-gradient: linear-gradient(135deg, #f8fafc, #818cf8);
+            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            --card-hover-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            --transition-speed: 0.2s;
+        }
+
+        [data-theme="light"] {
+            /* Vibrant Light Theme */
+            --bg-body: #f1f5f9;
+            --bg-sidebar: #ffffff;
+            --border-sidebar: #e2e8f0;
+            --text-main: #0f172a;
+            --text-secondary: #334155;
+            --text-muted: #64748b;
+            --accent-primary: #6366f1;
+            --accent-secondary: #8b5cf6;
+            --primary: #6366f1;
+            --accent: #8b5cf6;
+            --primary-hover: #4f46e5;
+            --nav-item-hover-bg: #f8fafc;
+            --logout-bg-hover: rgba(239, 68, 68, 0.05);
+            --logout-border-hover: rgba(239, 68, 68, 0.1);
+            --logout-text: #ef4444;
+            --logout-text-hover: #dc2626;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --primary-glow: rgba(99, 102, 241, 0.08);
+            --text-gradient: linear-gradient(135deg, #0f172a, #6366f1);
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            --card-hover-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+
+            --mesh-gradient: radial-gradient(at 0% 0%, hsla(210, 40%, 98%, 1) 0, transparent 50%),
+                radial-gradient(at 50% 0%, hsla(220, 100%, 95%, 1) 0, transparent 50%),
+                radial-gradient(at 100% 0%, hsla(260, 100%, 95%, 1) 0, transparent 50%);
+        }
+
+        .sidebar {
+            width: 260px;
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border-sidebar);
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 1.25rem;
+            box-sizing: border-box;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            font-family: 'Outfit', sans-serif;
+            overflow-y: auto;
+            scrollbar-width: none;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .logo-container {
+            padding: 0 0.75rem 2.5rem 0.75rem;
+        }
+
+        .logo-container h1 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin: 0;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .nav-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            padding-left: 0.75rem;
+            font-weight: 700;
+        }
+
+        .nav-item {
+            padding: 0.75rem 0.875rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 0.75rem;
+            margin-bottom: 0.4rem;
+            transition: all var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            border: 1px solid transparent;
+        }
+
+        .nav-item i {
+            width: 18px;
+            height: 18px;
+            transition: transform var(--transition-speed);
+        }
+
+        .nav-item:hover {
+            color: var(--text-main);
+            background-color: var(--nav-item-hover-bg);
+            transform: translateX(4px);
+        }
+
+        .nav-item:hover i {
+            transform: scale(1.1);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(192, 132, 252, 0.15));
+            color: var(--accent-primary);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-item.active i {
+            color: var(--accent-primary);
+        }
+
+        .nav-item.admin {
+            color: var(--accent-secondary);
+        }
+
+        .nav-item.admin:hover {
+            color: var(--accent-secondary);
+            filter: brightness(1.2);
+        }
+
+        .nav-item.admin.active {
+            color: var(--accent-secondary);
+            background: linear-gradient(135deg, rgba(192, 132, 252, 0.15), rgba(99, 102, 241, 0.15));
+            border: 1px solid rgba(192, 132, 252, 0.2);
+        }
+
+        .logout-container {
+            border-top: 1px solid var(--border-sidebar);
+            padding-top: 1.5rem;
+            margin-top: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+            color: var(--logout-text);
+            text-decoration: none;
+            padding: 0.75rem 0.875rem;
+            border-radius: 0.75rem;
+            transition: all var(--transition-speed);
+            background: none;
+            border: 1px solid transparent;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.9375rem;
+            width: 100%;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .logout-btn:hover {
+            background: var(--logout-bg-hover);
+            border-color: var(--logout-border-hover);
+            color: var(--logout-text-hover);
+        }
+
+        /* Mode Toggle Styles */
+        .theme-toggle-container {
+            margin-bottom: 1rem;
+        }
+
+        .theme-toggle-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.75rem 0.875rem;
+            border-radius: 0.75rem;
+            transition: all var(--transition-speed);
+            background-color: var(--nav-item-hover-bg);
+            border: 1px solid var(--border-sidebar);
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.9375rem;
+            width: 100%;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .theme-toggle-btn:hover {
+            background-color: var(--nav-item-hover-bg);
+            color: var(--text-main);
+            border-color: var(--accent-primary);
+        }
+
+        .theme-toggle-btn i {
+            width: 18px;
+            height: 18px;
+        }
+
+        .dark-icon {
+            display: block;
+        }
+
+        .light-icon {
+            display: none;
+        }
+
+        [data-theme="light"] .dark-icon {
+            display: none;
+        }
+
+        [data-theme="light"] .light-icon {
+            display: block;
+        }
+
+        [data-theme="light"] .theme-toggle-btn {
+            background-color: var(--nav-item-hover-bg);
+        }
+    </style>
+
+    <div class="logo-container">
+        <h1>HotelCraft</h1>
+    </div>
+
+    <div class="nav-section">
+        <div class="nav-label">Main Menu</div>
+        <a th:href="@{/dashboard}" class="nav-item" th:classappend="${activePage == 'dashboard' ? 'active' : ''}">
+            <i data-lucide="layout-dashboard"></i>
+            <span>Dashboard</span>
+        </a>
+        <a th:href="${#authorization.expression('hasAuthority(''BOOKING_READ_ALL'')')} ? @{/admin/bookings} : @{/bookings}"
+            class="nav-item" th:classappend="${activePage == 'bookings' ? 'active' : ''}">
+            <i data-lucide="shopping-cart"></i>
+            Orders
+        </a>
+        <a th:href="@{/store}" class="nav-item" th:classappend="${activePage == 'store' ? 'active' : ''}">
+            <i data-lucide="shopping-bag"></i>
+            Store
+        </a>
+    </div>
+
+    <div class="nav-section">
+        <div class="nav-label">Suppliers</div>
+        
+        <!-- For users who are NOT yet suppliers and NOT admins -->
+        <a th:href="@{/suppliers/welcome}" class="nav-item"
+            th:classappend="${activePage == 'suppliers' ? 'active' : ''}"
+            sec:authorize="!hasAnyRole('ADMIN', 'SUPPLIER', 'NEW_SUPPLIER')">
+            <i data-lucide="truck"></i>
+            <span>Become a Supplier</span>
+        </a>
+
+        <!-- For Registered Suppliers (After Approval) -->
+        <a th:href="@{/suppliers/portal}" class="nav-item"
+            th:classappend="${activePage == 'supplier-portal' ? 'active' : ''}"
+            sec:authorize="hasRole('SUPPLIER')">
+            <i data-lucide="layout-dashboard"></i>
+            <span>Supplier Portal</span>
+        </a>
+        <a th:href="@{/suppliers/contracts}" class="nav-item"
+            th:classappend="${activePage == 'contracts' ? 'active' : ''}"
+            sec:authorize="hasRole('SUPPLIER')">
+            <i data-lucide="file-text"></i>
+            <span>My Contracts</span>
+        </a>
+
+        <!-- For Admins -->
+        <a th:href="@{/suppliers}" class="nav-item"
+            th:classappend="${activePage == 'suppliers' ? 'active' : ''}"
+            sec:authorize="hasRole('ADMIN')">
+            <i data-lucide="users"></i>
+            <span>Supplier Management</span>
+        </a>
+        <a th:href="@{/suppliers/contracts}" class="nav-item"
+            th:classappend="${activePage == 'contracts' ? 'active' : ''}"
+            sec:authorize="hasRole('ADMIN')">
+            <i data-lucide="file-text"></i>
+            <span>All Contracts</span>
+        </a>
+    </div>
+
+    <div class="nav-section">
+        <div class="nav-label">Inventory</div>
+        <a th:href="@{/inventory/raw-materials}" class="nav-item"
+            th:classappend="${activePage == 'raw-materials' ? 'active' : ''}">
+            <i data-lucide="package"></i>
+            <span th:text="${#authorization.expression('hasRole(''ROLE_ADMIN'')') ? 'Raw Materials' : 'Stock Summary'}">Stock Summary</span>
+        </a>
+        <a th:href="@{/inventory/finished-products}" class="nav-item"
+            th:classappend="${activePage == 'finished-products' ? 'active' : ''}"
+            sec:authorize="hasAuthority('INVENTORY_READ_ALL')">
+            <i data-lucide="box"></i>
+            Finished Products
+        </a>
+    </div>
+
+    <div class="nav-section" sec:authorize="hasAnyAuthority('USER_READ', 'ROLE_READ')">
+        <div class="nav-label">Administration</div>
+        <a th:href="@{/admin/users}" class="nav-item admin" th:classappend="${activePage == 'users' ? 'active' : ''}"
+            sec:authorize="hasAuthority('USER_READ')">
+            <i data-lucide="user-cog"></i>
+            Users
+        </a>
+        <a th:href="@{/admin/reports}" class="nav-item admin"
+            th:classappend="${activePage == 'finance-reports' ? 'active' : ''}" sec:authorize="hasRole('ADMIN')">
+            <i data-lucide="bar-chart-3"></i>
+            Financial Reports
+        </a>
+        <a th:href="@{/admin/roles}" class="nav-item admin" th:classappend="${activePage == 'roles' ? 'active' : ''}"
+            sec:authorize="hasAuthority('ROLE_READ')">
+            <i data-lucide="shield-check"></i>
+            Roles
+        </a>
+    </div>
+
+    <div class="logout-container">
+        <div class="theme-toggle-container">
+            <button id="theme-toggle" class="theme-toggle-btn">
+                <i data-lucide="moon" class="dark-icon"></i>
+                <i data-lucide="sun" class="light-icon"></i>
+                <span id="theme-label">Dark Mode</span>
+            </button>
+        </div>
+
+        <a th:href="@{/profile}" class="nav-item" th:classappend="${activePage == 'profile' ? 'active' : ''}"
+            style="margin-bottom: 0.5rem;">
+            <i data-lucide="user-circle"></i>
+            My Profile
+        </a>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="logout-btn">
+                <i data-lucide="log-out"></i>
+                Logout
+            </button>
+        </form>
+    </div>
+
+    <script>
+        // Immediate theme application to prevent flash
+        (function () {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+
+        // Robust Icon & Theme Initialization
+        function initSidebar() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+            
+            const themeToggle = document.getElementById('theme-toggle');
+            const themeLabel = document.getElementById('theme-label');
+            const html = document.documentElement;
+
+            if (themeToggle && themeLabel) {
+                const updateLabel = (theme) => {
+                    themeLabel.textContent = theme === 'dark' ? 'Dark Mode' : 'Light Mode';
+                };
+
+                updateLabel(html.getAttribute('data-theme'));
+
+                // Remove existing listeners to avoid duplicates
+                const newToggle = themeToggle.cloneNode(true);
+                themeToggle.parentNode.replaceChild(newToggle, themeToggle);
+
+                newToggle.addEventListener('click', () => {
+                    const currentTheme = html.getAttribute('data-theme');
+                    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+                    html.setAttribute('data-theme', newTheme);
+                    localStorage.setItem('theme', newTheme);
+                    updateLabel(newTheme);
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                });
+            }
+        }
+
+        // Run on load and also immediately if script is already there
+        window.addEventListener('DOMContentLoaded', initSidebar);
+        if (document.readyState === 'interactive' || document.readyState === 'complete') {
+            initSidebar();
+        }
+    </script>
+</div>

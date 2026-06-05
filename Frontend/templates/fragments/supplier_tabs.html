@@ -1,0 +1,366 @@
+<div xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:fragment="supplier_tabs(activeTab)" class="supplier-tabs-container">
+    <style>
+        .supplier-tabs-container {
+            margin-bottom: 2.5rem;
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .supplier-tabs {
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 0.5rem;
+            border-radius: 1.5rem;
+            display: inline-flex;
+            gap: 0.5rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        [data-theme="light"] .supplier-tabs {
+            background: rgba(255, 255, 255, 0.7);
+            border-color: rgba(0, 0, 0, 0.05);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        }
+
+        .supplier-tab-link {
+            padding: 0.85rem 1.75rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.9rem;
+            border-radius: 1.15rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .supplier-tab-link i {
+            width: 20px;
+            height: 20px;
+            stroke-width: 2.5px;
+        }
+
+        .supplier-tab-link:hover:not(.active) {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-1px);
+        }
+
+        .supplier-tab-link.active {
+            color: white !important;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            transform: scale(1.02);
+        }
+
+        /* Distinct UI Identities for each section */
+        .supplier-tab-link.active.suppliers {
+            background: var(--grad-analytics);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .supplier-tab-link.active.contracts {
+            background: var(--grad-profile);
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
+        }
+
+        .supplier-tab-link.active.portal {
+            background: var(--grad-inventory);
+            box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);
+        }
+
+        .supplier-tab-link.active.add {
+            background: var(--grad-analytics);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .supplier-tab-link.active.profile {
+            background: var(--grad-users);
+            box-shadow: 0 8px 20px rgba(236, 72, 153, 0.4);
+        }
+
+        .supplier-tab-link.active.bookings {
+            background: linear-gradient(135deg, #f472b6, #ec4899);
+            box-shadow: 0 8px 20px rgba(236, 72, 153, 0.4);
+        }
+
+        .supplier-tab-link.active i {
+            animation: iconPulse 2s infinite;
+        }
+
+        @keyframes iconPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Notification Styles */
+        .supplier-nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-left: 2rem;
+        }
+
+        .notification-bell {
+            position: relative;
+            cursor: pointer;
+            width: 48px;
+            height: 48px;
+            border-radius: 1.25rem;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            transition: all 0.3s;
+        }
+
+        .notification-bell:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+            transform: translateY(-2px);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 10px;
+            height: 10px;
+            background: #ef4444;
+            border: 2px solid #0f172a;
+            border-radius: 50%;
+            display: none;
+            animation: badgePulse 2s infinite;
+        }
+
+        @keyframes badgePulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        .notification-dropdown {
+            position: absolute;
+            top: calc(100% + 1rem);
+            right: 0;
+            width: 350px;
+            background: var(--bg-sidebar);
+            backdrop-filter: blur(25px);
+            border: 1px solid var(--border-sidebar);
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+            display: none;
+            z-index: 1000;
+            overflow: hidden;
+            animation: slideDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: left;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .dropdown-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-sidebar);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dropdown-header h3 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .notification-list {
+            max-height: 400px;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+
+        .notification-item {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-sidebar);
+            display: flex;
+            gap: 1rem;
+            transition: background 0.2s;
+            cursor: default;
+        }
+
+        .notification-item:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .note-icon {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-top: 0.4rem;
+            flex-shrink: 0;
+        }
+
+        .note-content h4 {
+            margin: 0;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .note-content p {
+            margin: 0.25rem 0 0 0;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .note-time {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+            display: block;
+            font-weight: 600;
+        }
+    </style>
+
+    <div class="supplier-tabs">
+        <!-- ADMIN ONLY TABS -->
+        <a sec:authorize="hasRole('ROLE_ADMIN')" th:href="@{/suppliers}" class="supplier-tab-link suppliers"
+            th:classappend="${activeTab == 'suppliers' ? 'active' : ''}">
+            <i data-lucide="truck"></i>
+            <span>All Suppliers</span>
+        </a>
+
+        <!-- COMMON TABS (Different behavior per role) -->
+        <a th:href="@{/suppliers/contracts}" class="supplier-tab-link contracts"
+            th:classappend="${activeTab == 'contracts' ? 'active' : ''}">
+            <i data-lucide="file-text"></i>
+            <span th:text="${#authorization.expression('hasRole(''ROLE_ADMIN'')') ? 'Manage Contracts' : 'My Contracts'}">Contracts</span>
+        </a>
+        <a th:href="@{/suppliers/supply-offers}" class="supplier-tab-link add"
+            th:classappend="${activeTab == 'supply-offers' ? 'active' : ''}">
+            <i data-lucide="package-search"></i>
+            <span>Supply Offers</span>
+        </a>
+        <a th:href="@{/suppliers/portal}" class="supplier-tab-link portal"
+            th:classappend="${activeTab == 'portal' ? 'active' : ''}">
+            <i data-lucide="layout"></i>
+            <span th:text="${#authorization.expression('hasRole(''ROLE_ADMIN'')') ? 'Supplier Portal' : 'My Dashboard'}">Dashboard</span>
+        </a>
+        <a sec:authorize="hasAnyRole('ROLE_SUPPLIER', 'ROLE_NEW_SUPPLIER')" th:href="@{/suppliers/profile}" class="supplier-tab-link profile"
+            th:classappend="${activeTab == 'supplier-profile' ? 'active' : ''}">
+            <i data-lucide="user"></i>
+            <span>My Profile</span>
+        </a>
+    </div>
+    <div class="supplier-nav-actions">
+        <div class="notification-bell" id="bellBtn">
+            <i data-lucide="bell"></i>
+            <div class="notification-badge" id="noteBadge"></div>
+            
+            <div class="notification-dropdown" id="noteDropdown">
+                <div class="dropdown-header">
+                    <h3>Recent Alerts</h3>
+                    <a sec:authorize="hasRole('ROLE_ADMIN')" th:href="@{/admin/notifications/new}" style="color: var(--accent-primary); text-decoration: none; font-size: 0.75rem; font-weight: 700;">+ New Broadcast</a>
+                </div>
+                <div class="notification-list" id="noteList">
+                    <!-- Notifications will be loaded here -->
+                </div>
+                <div class="dropdown-footer" style="padding: 1rem; text-align: center; background: rgba(0, 0, 0, 0.1);">
+                    <a href="#" style="font-size: 0.8rem; font-weight: 700; color: var(--accent-primary); text-decoration: none;">Clear All</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const bellBtn = document.getElementById('bellBtn');
+            const dropdown = document.getElementById('noteDropdown');
+            const badge = document.getElementById('noteBadge');
+            const list = document.getElementById('noteList');
+
+            if (!bellBtn) return;
+
+            function loadNotifications() {
+                fetch('/admin/notifications/api/list')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data && data.length > 0) {
+                            const lastSeen = localStorage.getItem('lastNotificationSeen') || 0;
+                            const latestTime = new Date(data[0].timestamp).getTime();
+                            
+                            if (latestTime > lastSeen) {
+                                badge.style.display = 'block';
+                            } else {
+                                badge.style.display = 'none';
+                            }
+
+                            list.innerHTML = data.map(note => `
+                                <div class="notification-item">
+                                    <div class="note-icon" style="background: ${getColor(note.type)}"></div>
+                                    <div class="note-content">
+                                        <h4>${note.title}</h4>
+                                        <p>${note.message}</p>
+                                        <span class="note-time">${formatTime(note.timestamp)}</span>
+                                    </div>
+                                </div>
+                            `).join('');
+                        } else {
+                            if(badge) badge.style.display = 'none';
+                            if(list) list.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">No new notifications</div>';
+                        }
+                    });
+            }
+
+            function getColor(type) {
+                switch(type) {
+                    case 'RED': return '#ef4444';
+                    case 'AMBER': return '#f59e0b';
+                    case 'GREEN': return '#10b981';
+                    default: return '#3b82f6';
+                }
+            }
+
+            function formatTime(timestamp) {
+                const date = new Date(timestamp);
+                return date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
+            }
+
+            bellBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isVisible = dropdown.style.display === 'block';
+                dropdown.style.display = isVisible ? 'none' : 'block';
+                
+                if (!isVisible) {
+                    loadNotifications();
+                    if(badge) badge.style.display = 'none';
+                    localStorage.setItem('lastNotificationSeen', Date.now());
+                }
+            });
+
+            document.addEventListener('click', () => {
+                if (dropdown) dropdown.style.display = 'none';
+            });
+
+            if(dropdown) {
+                dropdown.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                });
+            }
+
+            loadNotifications();
+            if (window.lucide) {
+                window.lucide.createIcons();
+            }
+        });
+    </script>
+</div>
