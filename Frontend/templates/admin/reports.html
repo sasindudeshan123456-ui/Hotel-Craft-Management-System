@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Reports - HotelCraft</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Enhanced Glassmorphism & Themes */
+        .main-content {
+            flex: 1;
+            padding: 2.5rem;
+            overflow-y: auto;
+            background: var(--mesh-gradient);
+            background-size: 200% 200%;
+            animation: meshMove 15s ease infinite;
+            transition: background 0.5s;
+        }
+
+        @keyframes meshMove {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .header {
+            margin-bottom: 3rem;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .header h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 0 0 0.5rem 0;
+            letter-spacing: -0.03em;
+            background: var(--grad-analytics);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .metric-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 1.5rem;
+            border: 1px solid var(--border-sidebar);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            box-shadow: var(--card-shadow);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: var(--accent-primary);
+            box-shadow: var(--card-hover-shadow);
+        }
+
+        .metric-card:hover::before {
+            opacity: 1;
+        }
+
+        .metric-label {
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+
+        .metric-value {
+            font-size: 2.25rem;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -0.02em;
+        }
+
+        .metric-change {
+            font-size: 0.9rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 2rem;
+            width: fit-content;
+        }
+
+        .change-up {
+            background: rgba(74, 222, 128, 0.1);
+            color: #22c55e;
+        }
+
+        .change-down {
+            background: rgba(248, 113, 113, 0.1);
+            color: #ef4444;
+        }
+
+        /* Charts Section */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .chart-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 2rem;
+            border: 1px solid var(--border-sidebar);
+            padding: 2.5rem;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
+        }
+
+        .chart-header {
+            margin-bottom: 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .chart-info h3 {
+            font-size: 1.25rem;
+            font-weight: 800;
+            margin: 0 0 0.4rem 0;
+            color: var(--text-main);
+        }
+
+        .chart-info p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{fragments/sidebar :: sidebar('finance-reports')}"></div>
+
+    <div class="main-content">
+        <div th:replace="~{fragments/nav_tabs :: nav_tabs('analytics')}"></div>
+        <div class="header">
+            <h2>Financial Performance</h2>
+            <div style="color: var(--text-muted);">Real-time metrics and revenue analytics for HotelCraft</div>
+        </div>
+
+        <!-- Metrics Section -->
+        <div class="metrics-grid">
+            <div class="metric-card" style="animation: fadeIn 0.8s ease-out both;">
+                <div class="metric-label">Total Revenue</div>
+                <div class="metric-value"
+                    th:text="'$' + ${#numbers.formatDecimal(metrics.totalRevenue, 1, 'COMMA', 2, 'POINT')}"></div>
+                <div class="metric-change" th:classappend="${metrics.growth >= 0 ? 'change-up' : 'change-down'}">
+                    <i th:data-lucide="${metrics.growth >= 0 ? 'arrow-up-right' : 'arrow-down-right'}" size="14"></i>
+                    <span th:text="${#numbers.formatDecimal(metrics.growth, 1, 1)} + '% from last month'"></span>
+                </div>
+            </div>
+
+            <div class="metric-card" style="animation: fadeIn 0.8s ease-out 0.1s both;">
+                <div class="metric-label">Avg. Booking Value</div>
+                <div class="metric-value"
+                    th:text="'$' + ${#numbers.formatDecimal(metrics.avgValue, 1, 'COMMA', 2, 'POINT')}"></div>
+                <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">Approved booking median
+                </div>
+            </div>
+
+            <div class="metric-card" style="animation: fadeIn 0.8s ease-out 0.2s both;">
+                <div class="metric-label">This Month</div>
+                <div class="metric-value"
+                    th:text="'$' + ${#numbers.formatDecimal(metrics.thisMonthRevenue, 1, 'COMMA', 2, 'POINT')}"></div>
+                <div
+                    style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500; display: flex; align-items: center; gap: 0.4rem;">
+                    <i data-lucide="calendar" size="14"></i>
+                    Current billing period
+                </div>
+            </div>
+
+            <div class="metric-card" style="animation: fadeIn 0.8s ease-out 0.3s both;">
+                <div class="metric-label">Total Bookings</div>
+                <div class="metric-value" th:text="${metrics.totalBookings}"></div>
+                <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">Excluding cancellations
+                </div>
+            </div>
+
+            <div class="metric-card" style="animation: fadeIn 0.8s ease-out 0.4s both; background: var(--grad-profile);">
+                <div class="metric-label" style="color: rgba(255,255,255,0.7);">Total Procurement Spend</div>
+                <div class="metric-value" style="color: white;"
+                    th:text="'$' + ${#numbers.formatDecimal(supplierMetrics.totalSpend, 1, 'COMMA', 2, 'POINT')}"></div>
+                <div style="font-size: 0.85rem; color: rgba(255,255,255,0.8); font-weight: 500; display: flex; align-items: center; gap: 0.4rem;">
+                    <i data-lucide="truck" size="14"></i>
+                    From approved supplier deals
+                </div>
+            </div>
+        </div>
+
+        <!-- Revenue Chart -->
+        <div class="chart-card" style="margin-bottom: 2rem; animation: fadeIn 1s ease-out 0.4s both;">
+            <div class="chart-header">
+                <div class="chart-info">
+                    <h3>Revenue Trend</h3>
+                    <p>Financial performance across the previous 6 months</p>
+                </div>
+                <div class="metric-change change-up"
+                    style="font-size: 0.8rem; background: var(--nav-item-hover-bg); color: var(--accent-primary);">
+                    <i data-lucide="activity" size="14"></i>
+                    Live Insights Active
+                </div>
+            </div>
+            <div style="height: 350px;">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Supplier Report Section -->
+        <div class="header" style="margin-top: 4rem; animation: fadeIn 0.8s ease-out;">
+            <h2>Supplier Financial Performance</h2>
+            <div style="color: var(--text-muted);">Procurement costs and active agreement analytics</div>
+        </div>
+
+        <div class="metrics-grid" style="margin-bottom: 3rem;">
+            <div class="metric-card" style="animation: fadeIn 0.8s ease-out both;">
+                <div class="metric-label">Active Contracts</div>
+                <div class="metric-value" th:text="${supplierMetrics.activeContracts}">0</div>
+                <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">Legally binding agreements</div>
+            </div>
+            <div class="metric-card" style="animation: fadeIn 0.8s ease-out 0.1s both;">
+                <div class="metric-label">Pending Proposal Value</div>
+                <div class="metric-value" th:text="'$' + ${#numbers.formatDecimal(supplierMetrics.pendingProposalsValue, 1, 'COMMA', 2, 'POINT')}">$0.00</div>
+                <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">Quotes awaiting decision</div>
+            </div>
+            <div class="metric-card" style="animation: fadeIn 0.8s ease-out 0.2s both;">
+                <div class="metric-label">Received Orders</div>
+                <div class="metric-value" th:text="${supplierMetrics.receivedOrders}">0</div>
+                <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">Successfully fulfilled deals</div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card" style="animation: fadeIn 1s ease-out 0.5s both;">
+                <div class="chart-header">
+                    <div class="chart-info">
+                        <h3>By Payment Method</h3>
+                        <p>Revenue distribution per source</p>
+                    </div>
+                </div>
+                <div style="height: 300px;">
+                    <canvas id="paymentChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card" style="animation: fadeIn 1s ease-out 0.6s both;">
+                <div class="chart-header">
+                    <div class="chart-info">
+                        <h3>Booking Health</h3>
+                        <p>Current status distribution</p>
+                    </div>
+                </div>
+                <div style="height: 300px; display: flex; justify-content: center; align-items: center;">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        lucide.createIcons();
+
+        // Theme-aware Chart Configuration
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
+        const textColor = isDark ? '#94a3b8' : '#475569';
+        const tooltipBg = isDark ? '#1e293b' : '#ffffff';
+        const tooltipBorder = isDark ? '#334155' : '#e2e8f0';
+
+        Chart.defaults.font.family = "'Outfit', sans-serif";
+        Chart.defaults.color = textColor;
+
+        // 1. Revenue Trend Chart
+        const revenueLabels = /*[[${ monthlyRevenue.labels }]]*/[];
+        const revenueData = /*[[${ monthlyRevenue.data }]]*/[];
+
+        const revCtx = document.getElementById('revenueChart').getContext('2d');
+        const revGradient = revCtx.createLinearGradient(0, 0, 0, 350);
+        revGradient.addColorStop(0, isDark ? 'rgba(129, 140, 248, 0.4)' : 'rgba(79, 70, 229, 0.2)');
+        revGradient.addColorStop(1, 'rgba(129, 140, 248, 0)');
+
+        new Chart(revCtx, {
+            type: 'line',
+            data: {
+                labels: revenueLabels,
+                datasets: [{
+                    label: 'Revenue',
+                    data: revenueData,
+                    borderColor: isDark ? '#818cf8' : '#4f46e5',
+                    backgroundColor: revGradient,
+                    borderWidth: 4,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: isDark ? '#818cf8' : '#4f46e5',
+                    pointBorderColor: isDark ? '#0f172a' : '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: '#818cf8',
+                    pointHoverBorderWidth: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: tooltipBg,
+                        titleColor: isDark ? '#f8fafc' : '#0f172a',
+                        bodyColor: isDark ? '#f8fafc' : '#0f172a',
+                        borderColor: tooltipBorder,
+                        borderWidth: 1,
+                        padding: 12,
+                        cornerRadius: 12,
+                        displayColors: false,
+                        callbacks: {
+                            label: function (context) {
+                                return ' Revenue: $' + context.parsed.y.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: gridColor, drawBorder: false },
+                        ticks: {
+                            padding: 10,
+                            color: textColor,
+                            callback: value => '$' + value.toLocaleString()
+                        }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { padding: 10, color: textColor }
+                    }
+                }
+            }
+        });
+
+        // 2. Payment Method Chart
+        const pmLabels = /*[[${ #lists.toList(paymentMethods.keySet()) }]]*/[];
+        const pmData = /*[[${ #lists.toList(paymentMethods.values()) }]]*/[];
+
+        new Chart(document.getElementById('paymentChart'), {
+            type: 'bar',
+            data: {
+                labels: pmLabels,
+                datasets: [{
+                    data: pmData,
+                    backgroundColor: [
+                        'rgba(129, 140, 248, 0.8)',
+                        'rgba(192, 132, 252, 0.8)',
+                        'rgba(74, 222, 128, 0.8)',
+                        'rgba(251, 191, 36, 0.8)'
+                    ],
+                    borderRadius: 12,
+                    borderWidth: 0,
+                    barThickness: 20
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: tooltipBg,
+                        titleColor: isDark ? '#f8fafc' : '#0f172a',
+                        bodyColor: isDark ? '#f8fafc' : '#0f172a',
+                        borderColor: tooltipBorder,
+                        borderWidth: 1,
+                        cornerRadius: 12
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: gridColor, drawBorder: false },
+                        ticks: { color: textColor, callback: v => '$' + v.toLocaleString() }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { color: textColor }
+                    }
+                }
+            }
+        });
+
+        // 3. Status Distribution (Doughnut)
+        const statusMap = /*[[${ statusDistribution }]]*/ {};
+        const statusLabels = Object.keys(statusMap);
+        const statusData = Object.values(statusMap);
+
+        const statusColors = {
+            'Approved': '#4ade80',
+            'Pending': '#facc15',
+            'Cancelled': '#f87171',
+            'Confirmed': '#818cf8',
+            'Completed': '#a855f7',
+            'Default': '#94a3b8'
+        };
+
+        new Chart(document.getElementById('statusChart'), {
+            type: 'doughnut',
+            data: {
+                labels: statusLabels,
+                datasets: [{
+                    data: statusData,
+                    backgroundColor: statusLabels.map(l => statusColors[l] || statusColors.Default),
+                    borderWidth: isDark ? 4 : 0,
+                    borderColor: isDark ? '#0f172a' : '#fff',
+                    hoverOffset: 15,
+                    weight: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: textColor,
+                            padding: 20,
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            font: { size: 12, weight: '600' }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: tooltipBg,
+                        titleColor: isDark ? '#f8fafc' : '#0f172a',
+                        bodyColor: isDark ? '#f8fafc' : '#0f172a',
+                        borderColor: tooltipBorder,
+                        borderWidth: 1,
+                        cornerRadius: 12
+                    }
+                },
+                cutout: '75%',
+                animation: {
+                    animateScale: true,
+                    animateRotate: true
+                }
+            }
+        });
+
+        // Listen for theme changes to update charts
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+                    // Update variables
+                    const newIsDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                    // For massive chart changes, reload is safest to reset all gradients/colors
+                    window.location.reload();
+                }
+            });
+        });
+        observer.observe(document.documentElement, { attributes: true });
+    </script>
+</body>
+
+</html>
