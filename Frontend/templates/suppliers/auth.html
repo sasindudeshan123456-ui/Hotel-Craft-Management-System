@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supplier Portal Login - HotelCraft</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-body: #050b18;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --card-bg: rgba(15, 23, 42, 0.8);
+            --primary: #10b981;
+            --accent: #34d399;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(16, 185, 129, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 20%);
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 450px;
+            padding: 2.5rem;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 3rem;
+            border-radius: 2.5rem;
+            border: 1px solid var(--border);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        .icon-box {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            color: white;
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            margin-bottom: 2.5rem;
+            font-size: 0.95rem;
+        }
+
+        .form-group {
+            text-align: left;
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 1.25rem;
+            color: var(--primary);
+            width: 18px;
+            height: 18px;
+        }
+
+        input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1.5px solid var(--border);
+            border-radius: 1rem;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(16, 185, 129, 0.05);
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 1.125rem;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            border-radius: 1rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px -5px rgba(16, 185, 129, 0.4);
+        }
+
+        .switch-auth {
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .switch-auth a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .switch-auth a:hover {
+            text-decoration: underline;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: rgba(239, 68, 68, 0.1);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="auth-container">
+        <div class="card">
+            <div class="icon-box">
+                <i data-lucide="truck" size="32"></i>
+            </div>
+            <h2>Supplier Portal</h2>
+            <p class="subtitle">Access your orders, contracts and performance</p>
+
+            <div th:if="${param.error}" class="alert">
+                <i data-lucide="alert-circle" size="18"></i>
+                <span>Invalid credentials. Please try again.</span>
+            </div>
+
+            <form th:action="@{/do-login}" method="post">
+                <div class="form-group">
+                    <label>Business Email</label>
+                    <div class="input-wrapper">
+                        <i data-lucide="mail"></i>
+                        <input type="email" name="username" placeholder="partner@hotelcraft.com" required autofocus>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Secure Password</label>
+                    <div class="input-wrapper">
+                        <i data-lucide="lock"></i>
+                        <input type="password" name="password" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-submit">Sign In to Portal</button>
+            </form>
+
+            <div class="switch-auth">
+                Want to become a partner? <a th:href="@{/suppliers/welcome}">Learn More</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
