@@ -1,0 +1,139 @@
+<div th:fragment="nav_tabs(activeTab)" class="nav-tabs-container">
+    <style>
+        .nav-tabs-container {
+            margin-bottom: 2.5rem;
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .colorful-tabs {
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 0.5rem;
+            border-radius: 1.5rem;
+            display: inline-flex;
+            gap: 0.5rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        [data-theme="light"] .colorful-tabs {
+            background: rgba(255, 255, 255, 0.7);
+            border-color: rgba(0, 0, 0, 0.05);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        }
+
+        .tab-link {
+            padding: 0.85rem 1.75rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.9rem;
+            border-radius: 1.15rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .tab-link i {
+            width: 20px;
+            height: 20px;
+            stroke-width: 2.5px;
+        }
+
+        .tab-link:hover:not(.active) {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-1px);
+        }
+
+        /* Active Solid Pill States with Signature Gradients */
+        .tab-link.active {
+            color: white !important;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            transform: scale(1.02);
+        }
+
+        .tab-link.active.dashboard {
+            background: var(--grad-dashboard);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .tab-link.active.analytics {
+            background: var(--grad-analytics);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .tab-link.active.inventory {
+            background: var(--grad-inventory);
+            box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);
+        }
+
+        .tab-link.active.users {
+            background: var(--grad-users);
+            box-shadow: 0 8px 20px rgba(236, 72, 153, 0.4);
+        }
+
+        .tab-link.active.profile {
+            background: var(--grad-profile);
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
+        }
+
+        .tab-link.active.bookings {
+            background: linear-gradient(135deg, #f472b6, #ec4899);
+            box-shadow: 0 8px 20px rgba(236, 72, 153, 0.4);
+        }
+
+        .tab-link.active.store {
+            background: var(--grad-analytics);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        @keyframes iconPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+    </style>
+
+    <div class="colorful-tabs">
+        <a th:href="@{/dashboard}" class="tab-link dashboard"
+            th:classappend="${activeTab == 'dashboard' ? 'active' : ''}">
+            <i data-lucide="layout-dashboard"></i>
+            <span>Dashboard</span>
+        </a>
+        <a th:href="${#authorization.expression('hasAuthority(''BOOKING_READ_ALL'')')} ? @{/admin/bookings} : @{/bookings}" 
+            class="tab-link bookings" th:classappend="${activeTab == 'bookings' ? 'active' : ''}">
+            <i data-lucide="calendar-check"></i>
+            <span>Bookings</span>
+        </a>
+        <a th:href="@{/admin/reports}" class="tab-link analytics"
+            th:classappend="${activeTab == 'analytics' ? 'active' : ''}"
+            sec:authorize="hasRole('ADMIN')">
+            <i data-lucide="bar-chart-3"></i>
+            <span>Analytics</span>
+        </a>
+        <a th:href="@{/inventory/finished-products}" class="tab-link inventory"
+            th:classappend="${activeTab == 'inventory' ? 'active' : ''}"
+            sec:authorize="hasRole('ADMIN')">
+            <i data-lucide="package"></i>
+            <span>Inventory</span>
+        </a>
+        <a th:href="@{/admin/users}" class="tab-link users" th:classappend="${activeTab == 'users' ? 'active' : ''}"
+            sec:authorize="hasRole('ADMIN')">
+            <i data-lucide="users"></i>
+            <span>Users</span>
+        </a>
+        <a th:href="@{/store}" class="tab-link store" th:classappend="${activeTab == 'store' ? 'active' : ''}">
+            <i data-lucide="shopping-bag"></i>
+            <span>Storefront</span>
+        </a>
+        <a th:href="@{/profile}" class="tab-link profile" th:classappend="${activeTab == 'profile' ? 'active' : ''}">
+            <i data-lucide="settings"></i>
+            <span>Profile</span>
+        </a>
+    </div>
+</div>
