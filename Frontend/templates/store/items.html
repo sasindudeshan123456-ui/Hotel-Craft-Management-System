@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store - HotelCraft</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2.5rem;
+            overflow-y: auto;
+            background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .header h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 0;
+            background: var(--grad-analytics);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
+        .cart-toggle {
+            position: relative;
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            color: #818cf8;
+            padding: 0.75rem 1.25rem;
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .cart-toggle:hover {
+            background: rgba(99, 102, 241, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ef4444;
+            color: white;
+            font-size: 0.7rem;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .product-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-sidebar);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .product-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(192, 132, 252, 0.1));
+            border-radius: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+        }
+
+        .product-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+        }
+
+        .product-price {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #818cf8;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .original-price {
+            text-decoration: line-through;
+            color: var(--text-muted);
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .discount-badge {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .product-price-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .product-price span {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .product-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .stock-badge {
+            background: rgba(34, 197, 94, 0.1);
+            color: #4ade80;
+            padding: 0.25rem 0.75rem;
+            border-radius: 2rem;
+            font-weight: 600;
+        }
+
+        .add-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            border: none;
+            padding: 0.875rem;
+            border-radius: 1rem;
+            font-family: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+        }
+
+        .add-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            background: rgba(34, 197, 94, 0.1);
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .admin-controls {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .price-edit-form {
+            display: none;
+            margin-top: 0.5rem;
+        }
+
+        .price-edit-form.active {
+            display: block;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+            border-radius: 0.5rem;
+        }
+
+        .btn-outline-primary {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .section-banner {
+            width: 100%;
+            height: 250px;
+            border-radius: 2rem;
+            margin-bottom: 2.5rem;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        .section-banner img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: brightness(0.6) saturate(1.2);
+            transition: transform 0.5s;
+        }
+
+        .section-banner:hover img {
+            transform: scale(1.05);
+        }
+
+        .banner-content {
+            position: absolute;
+            bottom: 2.5rem;
+            left: 2.5rem;
+            z-index: 2;
+        }
+
+        .banner-content h3 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 0;
+            color: white;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .banner-content p {
+            margin: 0.5rem 0 0 0;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+
+        .section-title-alt {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 4rem 0 2rem 0;
+        }
+
+        .section-title-alt h4 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin: 0;
+            background: var(--grad-analytics);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section-divider {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(to right, var(--border-sidebar), transparent);
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{fragments/sidebar :: sidebar('store')}"></div>
+
+    <div class="main-content">
+        <div th:replace="~{fragments/nav_tabs :: nav_tabs('store')}"></div>
+        <div class="header">
+            <div>
+                <h2>Storefront</h2>
+                <div style="color: var(--text-muted); font-weight: 500;">Premium assets for your hospitality excellence
+                </div>
+            </div>
+            <a th:href="@{/store/cart}" class="cart-toggle" sec:authorize="hasAnyRole('USER', 'ADMIN')">
+                <i data-lucide="shopping-cart"></i>
+                View Cart
+                <span id="cart-count-badge" class="cart-count" style="display: none;">0</span>
+            </a>
+            <div id="current-user-email" style="display: none;" sec:authentication="name">anonymousUser</div>
+        </div>
+
+        <div th:if="${success}" class="alert">
+            <i data-lucide="check-circle"></i>
+            <span th:text="${success}"></span>
+        </div>
+
+        <!-- SECTION 1: ELITE TEXTILES & LINENS -->
+        <div class="section-banner">
+            <img src="/images/elite_textiles_banner.png" alt="Garment Items">
+            <div class="banner-content">
+                <h3>Elite Textiles & Linens</h3>
+                <p>Premium garment assets for high-end hospitality</p>
+            </div>
+        </div>
+
+        <div class="products-grid">
+            <th:block th:each="product : ${products}" th:if="${product.name != null and (product.name.toLowerCase().contains('cover') or product.name.toLowerCase().contains('sheet') or product.name.toLowerCase().contains('curtain') or product.category == 'Garments')}">
+                <div class="product-card">
+                    <div class="product-icon" style="overflow: hidden;">
+                        <img th:if="${product.imagePath != null}" th:src="${product.imagePath}"
+                            style="width: 100%; height: 100%; object-fit: cover;">
+                        <th:block th:if="${product.imagePath == null}">
+                            <i th:if="${product.name.toLowerCase().contains('chair')}" data-lucide="layers"></i>
+                            <i th:if="${product.name.toLowerCase().contains('table')}" data-lucide="maximize"></i>
+                            <i th:if="${product.name.toLowerCase().contains('sheet')}" data-lucide="bed"></i>
+                            <i th:if="${product.name.toLowerCase().contains('curtain')}" data-lucide="columns"></i>
+                            <i th:if="${!product.name.toLowerCase().contains('chair') and !product.name.toLowerCase().contains('table') and !product.name.toLowerCase().contains('sheet') and !product.name.toLowerCase().contains('curtain')}"
+                                data-lucide="package"></i>
+                        </th:block>
+                    </div>
+                    <div class="product-title" th:text="${product.name}"></div>
+                    <div class="product-price-container">
+                        <div th:if="${product.discount > 0}" style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span class="original-price" th:text="'$' + ${product.price}"></span>
+                            <span class="discount-badge" th:text="'-' + ${product.discount} + '%'"></span>
+                        </div>
+                        <div class="product-price">
+                            <span>$</span><span
+                                th:text="${product.discount > 0 ? #numbers.formatDecimal(product.price * (1 - product.discount/100), 1, 2) : product.price}"></span>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <span>Available Stock</span>
+                        <span class="stock-badge"><span th:text="${product.quantity}"></span> units</span>
+                    </div>
+                    <button class="add-btn cart-add-btn" th:data-id="${product.id}" th:data-name="${product.name}"
+                        th:data-price="${product.price}" sec:authorize="hasAnyRole('USER', 'ADMIN')">
+                        <i data-lucide="plus-circle"></i>
+                        Add to Cart
+                    </button>
+
+                    <!-- Admin controls omitted for brevity here but should be preserved in real file if needed -->
+                    <div class="admin-controls" sec:authorize="hasAuthority('INVENTORY_UPDATE')">
+                        <button class="btn-outline-primary btn-sm toggle-price-form" th:data-target="'price-form-' + ${product.id}">
+                            <i data-lucide="edit-2" size="14"></i> Update Price
+                        </button>
+                        <form th:id="'price-form-' + ${product.id}" class="price-edit-form" th:action="@{/store/update-price/{id}(id=${product.id})}" method="post">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+                                <input type="number" name="price" class="form-control" th:value="${product.price}" step="0.01" required>
+                                <input type="number" name="discount" class="form-control" th:value="${product.discount}" step="1" min="0" max="100" required>
+                            </div>
+                            <button type="submit" class="add-btn btn-sm">Save</button>
+                        </form>
+                    </div>
+                </div>
+            </th:block>
+        </div>
+
+        <!-- SECTION 2: INDUSTRIAL IRONWARE & FURNITURE -->
+        <div class="section-banner" style="margin-top: 5rem;">
+            <img src="/images/iron_furniture_banner.png" alt="Iron Items">
+            <div class="banner-content">
+                <h3>Industrial Ironware & Hospitality Furniture</h3>
+                <p>Heavy-duty assets for professional hotel management</p>
+            </div>
+        </div>
+
+        <div class="products-grid">
+            <th:block th:each="product : ${products}" th:if="${product.name != null and not (product.name.toLowerCase().contains('cover') or product.name.toLowerCase().contains('sheet') or product.name.toLowerCase().contains('curtain') or product.category == 'Garments')}">
+                <div class="product-card">
+                    <div class="product-icon" style="overflow: hidden;">
+                        <img th:if="${product.imagePath != null}" th:src="${product.imagePath}"
+                            style="width: 100%; height: 100%; object-fit: cover;">
+                        <th:block th:if="${product.imagePath == null}">
+                            <i th:if="${product.name.toLowerCase().contains('chair')}" data-lucide="armchair"></i>
+                            <i th:if="${product.name.toLowerCase().contains('table')}" data-lucide="grid-3x3"></i>
+                            <i th:if="${product.name.toLowerCase().contains('buffet')}" data-lucide="utensils"></i>
+                            <i th:if="${product.name.toLowerCase().contains('desk')}" data-lucide="monitor"></i>
+                            <i th:if="${!product.name.toLowerCase().contains('chair') and !product.name.toLowerCase().contains('table') and !product.name.toLowerCase().contains('buffet') and !product.name.toLowerCase().contains('desk')}"
+                                data-lucide="package"></i>
+                        </th:block>
+                    </div>
+                    <div class="product-title" th:text="${product.name}"></div>
+                    <div class="product-price-container">
+                        <div th:if="${product.discount > 0}" style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span class="original-price" th:text="'$' + ${product.price}"></span>
+                            <span class="discount-badge" th:text="'-' + ${product.discount} + '%'"></span>
+                        </div>
+                        <div class="product-price">
+                            <span>$</span><span
+                                th:text="${product.discount > 0 ? #numbers.formatDecimal(product.price * (1 - product.discount/100), 1, 2) : product.price}"></span>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <span>Available Stock</span>
+                        <span class="stock-badge"><span th:text="${product.quantity}"></span> units</span>
+                    </div>
+                    <button class="add-btn cart-add-btn" th:data-id="${product.id}" th:data-name="${product.name}"
+                        th:data-price="${product.price}" sec:authorize="hasAnyRole('USER', 'ADMIN')">
+                        <i data-lucide="plus-circle"></i>
+                        Add to Cart
+                    </button>
+
+                    <div class="admin-controls" sec:authorize="hasAuthority('INVENTORY_UPDATE')">
+                        <button class="btn-outline-primary btn-sm toggle-price-form" th:data-target="'price-form-iron-' + ${product.id}">
+                            <i data-lucide="edit-2" size="14"></i> Update Price
+                        </button>
+                        <form th:id="'price-form-iron-' + ${product.id}" class="price-edit-form" th:action="@{/store/update-price/{id}(id=${product.id})}" method="post">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+                                <input type="number" name="price" class="form-control" th:value="${product.price}" step="0.01" required>
+                                <input type="number" name="discount" class="form-control" th:value="${product.discount}" step="1" min="0" max="100" required>
+                            </div>
+                            <button type="submit" class="add-btn btn-sm">Save</button>
+                        </form>
+                    </div>
+                </div>
+            </th:block>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        function getCartKey() {
+            const userEmail = document.getElementById('current-user-email')?.textContent || 'anonymousUser';
+            return `hotelcraft_cart_${userEmail}`;
+        }
+
+        function getCart() {
+            return JSON.parse(localStorage.getItem(getCartKey()) || '[]');
+        }
+
+        function saveCart(cart) {
+            localStorage.setItem(getCartKey(), JSON.stringify(cart));
+            updateCartBadge();
+        }
+
+        function addToCart(id, name, price) {
+            let cart = getCart();
+            let existingItem = cart.find(item => item.id === id);
+
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({ id, name, price, quantity: 1 });
+            }
+
+            saveCart(cart);
+            alert(name + ' added to cart!');
+        }
+
+        function updateCartBadge() {
+            const cart = getCart();
+            const badge = document.getElementById('cart-count-badge');
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+            if (totalItems > 0) {
+                badge.textContent = totalItems;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        document.querySelectorAll('.cart-add-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const id = parseInt(this.getAttribute('data-id'));
+                const name = this.getAttribute('data-name');
+                const price = parseFloat(this.getAttribute('data-price'));
+                addToCart(id, name, price);
+            });
+        });
+
+        // Admin Toggle Price Form
+        document.querySelectorAll('.toggle-price-form').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const targetId = this.getAttribute('data-target');
+                document.getElementById(targetId).classList.toggle('active');
+            });
+        });
+
+        updateCartBadge();
+    </script>
+</body>
+
+</html>

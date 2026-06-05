@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Checkout - HotelCraft</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-body: #0f172a;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --border-sidebar: rgba(255, 255, 255, 0.1);
+            --primary: #6366f1;
+            --accent: #a855f7;
+            --grad-analytics: linear-gradient(135deg, #6366f1, #a855f7);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-body);
+            background-image: radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 100% 100%, rgba(168, 85, 247, 0.1) 0%, transparent 50%);
+            color: var(--text-main);
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+            box-sizing: border-box;
+        }
+
+        .checkout-stepper {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-bottom: 4rem;
+            position: relative;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 2;
+            opacity: 0.5;
+            transition: all 0.3s;
+        }
+
+        .step.active {
+            opacity: 1;
+        }
+
+        .step.completed {
+            opacity: 0.8;
+        }
+
+        .step-circle {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--card-bg);
+            border: 2px solid var(--border-sidebar);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            transition: all 0.3s;
+        }
+
+        .step.active .step-circle {
+            background: var(--primary);
+            border-color: var(--primary);
+            box-shadow: 0 0 25px rgba(99, 102, 241, 0.4);
+            transform: scale(1.1);
+        }
+
+        .step.completed .step-circle {
+            background: #22c55e;
+            border-color: #22c55e;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-sidebar);
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+        }
+
+        .summary-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: var(--text-main);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-sidebar);
+            border-radius: 0.75rem;
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.2s;
+            box-sizing: border-box;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        .payment-container {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 3rem;
+            align-items: start;
+        }
+
+        .checkout-step-content {
+            display: none;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        .checkout-step-content.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .method-option {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid var(--border-sidebar);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-muted);
+        }
+
+        .method-option:hover {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: var(--primary);
+        }
+
+        .method-option.selected {
+            background: rgba(99, 102, 241, 0.2);
+            border-color: var(--primary);
+            color: #818cf8;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.1);
+        }
+
+        .step-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+        }
+
+        .btn-next,
+        .btn-prev,
+        .pay-btn {
+            padding: 1rem 2.5rem;
+            border-radius: 1rem;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .btn-next,
+        .pay-btn {
+            background: var(--grad-analytics);
+            color: white;
+            border: none;
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
+        }
+
+        .btn-prev {
+            background: transparent;
+            color: var(--text-main);
+            border: 1px solid var(--border-sidebar);
+        }
+
+        .btn-next:hover,
+        .pay-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-prev:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .card-preview {
+            background: linear-gradient(135deg, #4f46e5, #9333ea);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-number {
+            font-size: 1.5rem;
+            letter-spacing: 0.15em;
+            font-family: 'Courier New', monospace;
+            margin-top: 1.5rem;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.1em;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .summary-row.total {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-sidebar);
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Invoice Modal Styles */
+        .invoice-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            box-sizing: border-box;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .invoice-modal-content {
+            background: #1e293b;
+            width: 100%;
+            max-width: 800px;
+            border-radius: 2rem;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 50px 100px rgba(0, 0, 0, 0.5);
+            position: relative;
+            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .invoice-header {
+            padding: 1.5rem 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .invoice-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .close-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: none;
+            color: #94a3b8;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: rotate(90deg);
+        }
+
+        .invoice-body {
+            padding: 2.5rem;
+            background: #f8fafc;
+            /* Professional white invoice */
+            margin: 1.5rem 2.5rem;
+            border-radius: 1rem;
+            color: #334155;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .invoice-brand {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 3rem;
+        }
+
+        .brand-name {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #6366f1;
+        }
+
+        .invoice-meta {
+            text-align: right;
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+
+        .customer-info {
+            margin-bottom: 2.5rem;
+        }
+
+        .info-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #94a3b8;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-value {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+        }
+
+        .invoice-table th {
+            text-align: left;
+            padding: 0.75rem 0;
+            border-bottom: 2px solid #e2e8f0;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #94a3b8;
+            letter-spacing: 0.1em;
+        }
+
+        .invoice-table td {
+            padding: 1.25rem 0.5rem;
+            font-size: 0.9rem;
+            color: #64748b;
+            /* Improved visibility for secondary details */
+        }
+
+        .invoice-item-row {
+            transition: all 0.2s;
+        }
+
+        .invoice-item-row td:first-child {
+            padding-left: 1.5rem;
+            border-radius: 1rem 0 0 1rem;
+        }
+
+        .invoice-item-row td:last-child {
+            padding-right: 1.5rem;
+            border-radius: 0 1rem 1rem 0;
+        }
+
+        .invoice-item-row.highlighted {
+            background: #ffffff !important;
+            box-shadow: 0 0 0 1px #e2e8f0;
+            border-radius: 1.25rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .invoice-item-row.highlighted td {
+            background: #ffffff !important;
+            padding-top: 1.25rem !important;
+            padding-bottom: 1.25rem !important;
+            border: none !important;
+        }
+
+        .item-name {
+            color: #6366f1 !important;
+            /* Force the blue color */
+            font-weight: 700;
+            font-size: 1rem;
+            display: block;
+            line-height: 1.4;
+            /* Better line height to avoid overlap */
+        }
+
+        .item-value {
+            color: #0f172a !important;
+            /* Near black for maximum visibility */
+            font-weight: 700;
+        }
+
+        .invoice-totals {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.5rem;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            width: 200px;
+            font-size: 0.9rem;
+        }
+
+        .total-row.grand-total {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 2px solid #e2e8f0;
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #6366f1;
+        }
+
+        .invoice-footer {
+            padding: 2.5rem;
+            display: flex;
+            justify-content: flex-end;
+            /* Align to right like in the image */
+            gap: 1.25rem;
+        }
+
+        .btn-print {
+            background: #6366f1;
+            /* Solid primary color check if it's gradient in image */
+            background: linear-gradient(135deg, #6366f1, #818cf8);
+            color: white;
+            border: none;
+            padding: 0.85rem 1.75rem;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
+        }
+
+        .btn-print:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-close-modal {
+            background: rgba(30, 41, 59, 0.4);
+            color: #94a3b8;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            padding: 0.85rem 1.75rem;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-close-modal:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+
+            .invoice-overlay {
+                position: static;
+                display: block !important;
+                padding: 0;
+                background: white;
+            }
+
+            .invoice-modal-content {
+                box-shadow: none;
+                border: none;
+                max-width: 100%;
+                position: static;
+            }
+
+            .invoice-header,
+            .invoice-footer,
+            .close-btn {
+                display: none;
+            }
+
+            .invoice-body {
+                visibility: visible;
+                margin: 0;
+                padding: 0;
+                box-shadow: none;
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+
+            .invoice-body * {
+                visibility: visible;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .spinner {
+                width: 60px;
+                height: 60px;
+                border: 5px solid rgba(255, 255, 255, 0.1);
+                border-top: 5px solid var(--primary);
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                margin-bottom: 2rem;
+            }
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .payment-container {
+                grid-template-columns: 1fr;
+            }
+
+            .order-summary {
+                position: static !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4rem;">
+            <a th:href="@{/store}"
+                style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-muted); text-decoration: none; font-weight: 600;">
+                <i data-lucide="arrow-left" size="20"></i>
+                Return to Store
+            </a>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div
+                    style="width: 12px; height: 12px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 10px var(--primary);">
+                </div>
+                <span style="font-weight: 800; font-size: 1rem; letter-spacing: 0.15em; color: var(--text-main);">SECURE
+                    CHECKOUT</span>
+            </div>
+        </div>
+
+        <div class="checkout-stepper">
+            <div class="step active" id="step-nav-1">
+                <div class="step-circle">1</div>
+                <span style="font-size: 0.9rem; font-weight: 700;">REVIEW</span>
+            </div>
+            <div class="step" id="step-nav-2">
+                <div class="step-circle">2</div>
+                <span style="font-size: 0.9rem; font-weight: 700;">PAYMENT</span>
+            </div>
+            <div class="step" id="step-nav-3">
+                <div class="step-circle">3</div>
+                <span style="font-size: 0.9rem; font-weight: 700;">CONFIRM</span>
+            </div>
+        </div>
+
+        <div class="payment-container">
+            <form id="payment-form" th:action="@{/store/payment}" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="amount" id="total-amount-input">
+                <input type="hidden" name="discountAmount" id="discount-amount-input">
+                <input type="hidden" name="taxAmount" id="tax-amount-input">
+                <input type="hidden" name="cartJson" id="cart-json-input">
+
+                <!-- STEP 1: REVIEW ITEMS -->
+                <div class="checkout-step-content active" id="step-1">
+                    <div class="card">
+                        <div class="summary-title">
+                            <i data-lucide="shopping-cart"></i>
+                            Step 1: Review Your Order
+                        </div>
+                        <p style="color: var(--text-muted); margin-bottom: 2.5rem;">Please review the items in your cart
+                            and choose your delivery preference.</p>
+
+                        <div id="cart-items-display"
+                            style="max-height: 400px; overflow-y: auto; margin-bottom: 2.5rem; border: 1px solid var(--border-sidebar); border-radius: 1rem; background: rgba(0,0,0,0.2);">
+                        </div>
+
+                        <div
+                            style="background: rgba(99, 102, 241, 0.05); padding: 2rem; border-radius: 1.5rem; border: 1px solid rgba(99, 102, 241, 0.1);">
+                            <label style="font-size: 1rem; color: var(--text-main); margin-bottom: 1.5rem;">Delivery
+                                Options</label>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                                <label
+                                    style="display: flex; align-items: center; gap: 1rem; cursor: pointer; padding: 1.25rem; background: rgba(255,255,255,0.03); border-radius: 1rem; border: 1px solid var(--border-sidebar);">
+                                    <input type="radio" name="deliveryNeeded" value="false" class="delivery-toggle"
+                                        checked style="width: 1.5rem; height: 1.5rem; accent-color: var(--primary);">
+                                    <span>Store Pickup (Free)</span>
+                                </label>
+                                <label
+                                    style="display: flex; align-items: center; gap: 1rem; cursor: pointer; padding: 1.25rem; background: rgba(255,255,255,0.03); border-radius: 1rem; border: 1px solid var(--border-sidebar);">
+                                    <input type="radio" name="deliveryNeeded" value="true" class="delivery-toggle"
+                                        style="width: 1.5rem; height: 1.5rem; accent-color: var(--primary);">
+                                    <span>Home Delivery</span>
+                                </label>
+                            </div>
+
+                            <div id="delivery-details" style="display: none; margin-top: 2rem;">
+                                <div class="form-group">
+                                    <label for="delivery-address">Delivery Address</label>
+                                    <textarea name="deliveryAddress" id="delivery-address" class="form-control" rows="4"
+                                        placeholder="Enter your full street address, city, and province..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="step-actions">
+                            <div></div>
+                            <button type="button" class="btn-next" onclick="goToStep(2)">
+                                Continue to Payment
+                                <i data-lucide="arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: PAYMENT METHOD -->
+                <div class="checkout-step-content" id="step-2">
+                    <div class="card">
+                        <div class="summary-title">
+                            <i data-lucide="credit-card"></i>
+                            Step 2: Payment Information
+                        </div>
+                        <p style="color: var(--text-muted); margin-bottom: 2.5rem;">Choose how you'd like to pay and
+                            provide the necessary details.</p>
+
+                        <div
+                            style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2.5rem;">
+                            <label class="method-option" id="method-card">
+                                <input type="radio" name="paymentMethod" value="Card" checked style="display: none;">
+                                <i data-lucide="credit-card" size="32"></i>
+                                <span>Credit Card</span>
+                            </label>
+                            <label class="method-option" id="method-cod">
+                                <input type="radio" name="paymentMethod" value="COD" style="display: none;">
+                                <i data-lucide="truck" size="32"></i>
+                                <span>Cash on Delivery</span>
+                            </label>
+                            <label class="method-option" id="method-bank">
+                                <input type="radio" name="paymentMethod" value="Bank Transfer" style="display: none;">
+                                <i data-lucide="landmark" size="32"></i>
+                                <span>Bank Transfer</span>
+                            </label>
+                        </div>
+
+                        <div id="card-fields">
+                            <div class="form-group">
+                                <label>Cardholder Name</label>
+                                <input type="text" name="cardHolderName" id="card-name" class="form-control"
+                                    th:value="${user?.fullName}" placeholder="John Doe">
+                            </div>
+                            <div class="form-group">
+                                <label>Card Number</label>
+                                <input type="text" name="cardNumber" id="card-num" class="form-control"
+                                    placeholder="0000 0000 0000 0000" maxlength="19">
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                                <div class="form-group">
+                                    <label>Expiry Date</label>
+                                    <input type="text" name="expiryDate" id="card-expiry" class="form-control"
+                                        placeholder="MM/YY" maxlength="5">
+                                </div>
+                                <div class="form-group">
+                                    <label>CVV</label>
+                                    <input type="password" name="cvv" id="card-cvv" class="form-control"
+                                        placeholder="***" maxlength="3">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="bank-fields" style="display: none;">
+                            <div
+                                style="background: rgba(255,255,255,0.05); padding: 2rem; border-radius: 1rem; border: 1px solid var(--border-sidebar); margin-bottom: 2rem;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                                    <span style="color: var(--text-muted);">Bank Name:</span>
+                                    <span style="font-weight: 700;">HotelCraft Central Bank</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                                    <span style="color: var(--text-muted);">Account Number:</span>
+                                    <span style="font-weight: 700;">1234-5678-9012</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: var(--text-muted);">Branch:</span>
+                                    <span style="font-weight: 700;">Corporate Square</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Upload Payment Receipt</label>
+                                <input type="file" name="bankSlip" id="bank-slip" class="form-control"
+                                    accept="image/*,.pdf">
+                            </div>
+                        </div>
+
+                        <div id="cod-info" style="display: none;">
+                            <div
+                                style="background: rgba(34, 197, 94, 0.1); padding: 2rem; border-radius: 1.5rem; border: 1px solid rgba(34, 197, 94, 0.2); display: flex; gap: 1.5rem; align-items: flex-start;">
+                                <i data-lucide="info" style="color: #22c55e; flex-shrink: 0;"></i>
+                                <div>
+                                    <h4 style="margin: 0 0 0.5rem 0; color: #22c55e;">Cash on Delivery</h4>
+                                    <p style="margin: 0; color: var(--text-muted); line-height: 1.6;">You will pay the
+                                        total amount in cash to our delivery agent upon receiving your order. Please
+                                        have the exact change ready if possible.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="step-actions">
+                            <button type="button" class="btn-prev" onclick="goToStep(1)">
+                                <i data-lucide="arrow-left"></i>
+                                Back
+                            </button>
+                            <button type="button" class="btn-next" onclick="goToStep(3)">
+                                Review & Confirm
+                                <i data-lucide="arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 3: CONFIRMATION -->
+                <div class="checkout-step-content" id="step-3">
+                    <div class="card">
+                        <div class="summary-title">
+                            <i data-lucide="check-circle-2"></i>
+                            Step 3: Final Confirmation
+                        </div>
+                        <p style="color: var(--text-muted); margin-bottom: 2.5rem;">Review your final details before
+                            completing the purchase.</p>
+
+                        <div
+                            style="background: rgba(255,255,255,0.03); padding: 2rem; border-radius: 1.5rem; border: 1px solid var(--border-sidebar); margin-bottom: 2.5rem;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                                <div>
+                                    <label>Payment Method</label>
+                                    <div id="confirm-method"
+                                        style="font-size: 1.1rem; font-weight: 700; color: var(--primary);">Card</div>
+                                </div>
+                                <div>
+                                    <label>Delivery Preference</label>
+                                    <div id="confirm-delivery" style="font-size: 1.1rem; font-weight: 700;">Pickup</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="pay-btn"
+                            style="width: 100%; justify-content: center; padding: 1.5rem;">
+                            <i data-lucide="shield-check"></i>
+                            Complete Purchase & Pay <span id="final-total-btn">$0.00</span>
+                        </button>
+
+                        <div class="step-actions" style="justify-content: center;">
+                            <button type="button" class="btn-prev" onclick="goToStep(2)">
+                                <i data-lucide="edit-3"></i>
+                                Edit Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <div class="order-summary" style="position: sticky; top: 2rem;">
+                <div class="card" style="padding: 2rem;">
+                    <div class="summary-title" style="font-size: 1.25rem;">
+                        <i data-lucide="file-text"></i>
+                        Order Total
+                    </div>
+
+                    <div class="card-preview" id="card-preview-container" style="margin-bottom: 2rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <i data-lucide="credit-card" size="32"></i>
+                            <span style="font-weight: 800;">PLATINUM</span>
+                        </div>
+                        <div class="card-number" id="preview-number">•••• •••• •••• ••••</div>
+                        <div class="card-footer">
+                            <div>
+                                <div style="opacity: 0.6; font-size: 0.6rem;">Holder</div>
+                                <div id="preview-name" th:text="${#strings.toUpperCase(user?.fullName ?: 'CUSTOMER')}">
+                                    CUSTOMER</div>
+                            </div>
+                            <div>
+                                <div style="opacity: 0.6; font-size: 0.6rem;">Expiry</div>
+                                <div id="preview-expiry">MM/YY</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="summary-row">
+                        <span style="color: var(--text-muted);">Subtotal</span>
+                        <span id="sum-subtotal">$0.00</span>
+                    </div>
+                    <div class="summary-row">
+                        <span style="color: var(--text-muted);">Tax (5%)</span>
+                        <span id="sum-tax">$0.00</span>
+                    </div>
+                    <div class="summary-row" id="discount-summary-row" style="display: none; color: #22c55e;">
+                        <span>Discount</span>
+                        <span id="sum-discount">-$0.00</span>
+                    </div>
+                    <div class="summary-row" id="delivery-summary-row" style="display: none;">
+                        <span style="color: var(--text-muted);">Delivery</span>
+                        <span id="sum-delivery">$0.00</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total</span>
+                        <span id="sum-total">$0.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="spinner"></div>
+        <h2 style="margin: 0;">Processing Order</h2>
+        <p style="color: var(--text-muted);">Please wait a moment...</p>
+    </div>
+
+    <!-- Order Invoice Modal -->
+    <div class="invoice-overlay" id="invoice-overlay">
+        <div class="invoice-modal-content">
+            <div class="invoice-header">
+                <h2>Order Invoice</h2>
+                <button class="close-btn" onclick="closeInvoice()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <div class="invoice-body">
+                <div class="invoice-brand">
+                    <div>
+                        <div class="brand-name">HotelCraft</div>
+                        <div style="font-size: 0.9rem; margin-top: 0.25rem;">Invoice #<span id="inv-id">5</span></div>
+                    </div>
+                    <div class="invoice-meta">
+                        <div>Date: <span id="inv-date">2026-04-24</span></div>
+                        <div>Phone: +94 740860141</div>
+                    </div>
+                </div>
+
+                <div class="customer-info" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div>
+                        <div class="info-label">Customer</div>
+                        <div class="info-value" id="inv-customer">System Admin</div>
+                    </div>
+                    <div>
+                        <div class="info-label">Payment Method</div>
+                        <div class="info-value"><span id="inv-method">Credit Card</span></div>
+                    </div>
+                    <div>
+                        <div class="info-label">Status</div>
+                        <div class="info-value"><span style="color: #10b981;">Approved</span></div>
+                    </div>
+                </div>
+
+                <table class="invoice-table">
+                    <thead>
+                        <tr>
+                            <th style="text-transform: none; font-size: 0.9rem;">Description</th>
+                            <th style="text-transform: none; font-size: 0.9rem;">Qty</th>
+                            <th style="text-transform: none; font-size: 0.9rem;">Price</th>
+                            <th style="text-transform: none; font-size: 0.9rem;">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inv-items">
+                        <!-- Dynamic items -->
+                    </tbody>
+                </table>
+
+                <div class="invoice-totals">
+                    <div class="total-row">
+                        <span style="color: #64748b;">Subtotal:</span>
+                        <span id="inv-subtotal" style="font-weight: 700;">$30.00</span>
+                    </div>
+                    <div class="total-row">
+                        <span style="color: #ef4444;">Discount:</span>
+                        <span id="inv-discount" style="font-weight: 700;">-$0.00</span>
+                    </div>
+                    <div class="total-row">
+                        <span style="color: #64748b;">Tax (5%):</span>
+                        <span id="inv-tax" style="font-weight: 700;">$1.50</span>
+                    </div>
+                    <div class="total-row grand-total">
+                        <span>Total:</span>
+                        <span id="inv-total">$31.50</span>
+                    </div>
+                </div>
+
+                <div
+                    style="margin-top: 3rem; text-align: center; font-style: italic; color: #94a3b8; font-size: 0.9rem;">
+                    Thank you for your transaction with HotelCraft!
+                </div>
+            </div>
+
+            <div class="invoice-footer">
+                <button class="btn-close-modal" onclick="closeInvoice()">Close</button>
+                <button class="btn-print" onclick="window.print()">
+                    <i data-lucide="printer"></i>
+                    Print Invoice
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="current-user-email" style="display: none;" th:text="${user?.email ?: 'anonymousUser'}"></div>
+
+    <script>
+        lucide.createIcons();
+
+        let currentStep = 1;
+
+        function goToStep(step) {
+            // Validation
+            if (step > currentStep) {
+                if (currentStep === 1) {
+                    const delivery = document.querySelector('input[name="deliveryNeeded"]:checked').value === 'true';
+                    if (delivery && !document.getElementById('delivery-address').value.trim()) {
+                        alert('Please provide a delivery address.');
+                        return;
+                    }
+                }
+                if (currentStep === 2) {
+                    const method = document.querySelector('input[name="paymentMethod"]:checked').value;
+                    if (method === 'Card') {
+                        const num = document.getElementById('card-num').value.replace(/\s/g, '');
+                        if (num.length !== 16) { alert('Invalid card number.'); return; }
+                    }
+                    if (method === 'Bank Transfer' && !document.getElementById('bank-slip').value) {
+                        alert('Please upload a bank receipt.'); return;
+                    }
+                }
+            }
+
+            // UI Update
+            document.querySelectorAll('.checkout-step-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(`step-${step}`).classList.add('active');
+
+            document.querySelectorAll('.step').forEach((s, idx) => {
+                const sNum = idx + 1;
+                s.classList.remove('active', 'completed');
+                if (sNum === step) s.classList.add('active');
+                else if (sNum < step) s.classList.add('completed');
+            });
+
+            if (step === 3) {
+                const method = document.querySelector('input[name="paymentMethod"]:checked').value;
+                const delivery = document.querySelector('input[name="deliveryNeeded"]:checked').value === 'true';
+                document.getElementById('confirm-method').textContent = method;
+                document.getElementById('confirm-delivery').textContent = delivery ? 'Home Delivery' : 'Store Pickup';
+                document.getElementById('final-total-btn').textContent = document.getElementById('sum-total').textContent;
+            }
+
+            currentStep = step;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function getCartKey() {
+            const email = document.getElementById('current-user-email')?.textContent || 'anonymousUser';
+            return `hotelcraft_cart_${email}`;
+        }
+
+        function loadTotals() {
+            const cart = JSON.parse(localStorage.getItem(getCartKey()) || '[]');
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+            // Item display
+            const display = document.getElementById('cart-items-display');
+            if (display) {
+                if (cart.length === 0) display.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--text-muted);">Cart is empty</div>';
+                else {
+                    display.innerHTML = cart.map(item => `
+                        <div style="display: flex; justify-content: space-between; padding: 1.25rem; border-bottom: 1px solid var(--border-sidebar);">
+                            <div>
+                                <div style="font-weight: 700; color: var(--text-main);">${item.name}</div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">${item.quantity} x $${item.price.toFixed(2)}</div>
+                            </div>
+                            <div style="font-weight: 800; color: var(--primary);">$${(item.price * item.quantity).toFixed(2)}</div>
+                        </div>
+                    `).join('');
+                }
+            }
+
+            // Calculations
+            const discount = subtotal >= 1000 ? subtotal * 0.1 : (subtotal >= 500 ? subtotal * 0.05 : 0);
+            const subLessDiscount = subtotal - discount;
+            const tax = subLessDiscount * 0.05;
+            const delivery = 0; // Fixed for now
+            const total = subLessDiscount + tax + delivery;
+
+            document.getElementById('sum-subtotal').textContent = `$${subtotal.toFixed(2)}`;
+            if (discount > 0) {
+                document.getElementById('discount-summary-row').style.display = 'flex';
+                document.getElementById('sum-discount').textContent = `-$${discount.toFixed(2)}`;
+            } else document.getElementById('discount-summary-row').style.display = 'none';
+
+            document.getElementById('sum-tax').textContent = `$${tax.toFixed(2)}`;
+            document.getElementById('sum-total').textContent = `$${total.toFixed(2)}`;
+
+            document.getElementById('total-amount-input').value = total.toFixed(2);
+            document.getElementById('discount-amount-input').value = discount.toFixed(2);
+            document.getElementById('tax-amount-input').value = tax.toFixed(2);
+        }
+
+        // Event Listeners
+        document.querySelectorAll('.method-option').forEach(opt => {
+            opt.addEventListener('click', function () {
+                document.querySelectorAll('.method-option').forEach(o => o.classList.remove('selected'));
+                this.classList.add('selected');
+                const radio = this.querySelector('input');
+                radio.checked = true;
+
+                const val = radio.value;
+                document.getElementById('card-fields').style.display = val === 'Card' ? 'block' : 'none';
+                document.getElementById('bank-fields').style.display = val === 'Bank Transfer' ? 'block' : 'none';
+                document.getElementById('cod-info').style.display = val === 'COD' ? 'block' : 'none';
+                document.getElementById('card-preview-container').style.display = val === 'Card' ? 'flex' : 'none';
+            });
+        });
+
+        function updatePaymentMethods() {
+            const isPickup = document.querySelector('input[name="deliveryNeeded"]:checked').value === 'false';
+            const codOption = document.getElementById('method-cod');
+            const codRadio = codOption.querySelector('input');
+
+            if (isPickup) {
+                codOption.style.opacity = '0.5';
+                codOption.style.pointerEvents = 'none';
+                codOption.style.filter = 'grayscale(1)';
+
+                if (codRadio.checked) {
+                    // Switch to Card if COD was selected
+                    document.getElementById('method-card').click();
+                    alert("Cash on Delivery is not available for Store Pickup. Please choose another payment method.");
+                }
+            } else {
+                codOption.style.opacity = '1';
+                codOption.style.pointerEvents = 'auto';
+                codOption.style.filter = 'none';
+            }
+        }
+
+        document.querySelectorAll('.delivery-toggle').forEach(t => {
+            t.addEventListener('change', function () {
+                const isHome = this.value === 'true';
+                document.getElementById('delivery-details').style.display = isHome ? 'block' : 'none';
+                document.getElementById('delivery-summary-row').style.display = isHome ? 'flex' : 'none';
+                updatePaymentMethods();
+                loadTotals();
+            });
+        });
+
+        document.getElementById('card-name').addEventListener('input', e => {
+            document.getElementById('preview-name').textContent = e.target.value.toUpperCase() || 'CUSTOMER';
+        });
+
+        document.getElementById('card-num').addEventListener('input', e => {
+            let v = e.target.value.replace(/\D/g, '').match(/.{1,4}/g)?.join(' ') || '';
+            e.target.value = v;
+            document.getElementById('preview-number').textContent = v || '•••• •••• •••• ••••';
+        });
+
+        document.getElementById('card-expiry').addEventListener('input', e => {
+            let v = e.target.value.replace(/\D/g, '');
+            if (v.length >= 2) v = v.substring(0, 2) + '/' + v.substring(2, 4);
+            e.target.value = v;
+            document.getElementById('preview-expiry').textContent = v || 'MM/YY';
+        });
+
+        function showInvoice() {
+            const cart = JSON.parse(localStorage.getItem(getCartKey()) || '[]');
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const discount = subtotal >= 1000 ? subtotal * 0.1 : (subtotal >= 500 ? subtotal * 0.05 : 0);
+            const subLessDiscount = subtotal - discount;
+            const tax = subLessDiscount * 0.05;
+            const total = subLessDiscount + tax;
+
+            // Populate items
+            const itemTable = document.getElementById('inv-items');
+            itemTable.innerHTML = cart.map((item, index) => `
+                <tr class="invoice-item-row ${index === 0 ? 'highlighted' : ''}">
+                    <td>
+                        <span class="item-name">${item.name}</span>
+                    </td>
+                    <td><span class="item-value">${item.quantity}</span></td>
+                    <td><span class="item-value">$${item.price.toFixed(2)}</span></td>
+                    <td style="text-align: right;"><span class="item-value">$${(item.price * item.quantity).toFixed(2)}</span></td>
+                </tr>
+            `).join('');
+
+            // Populate totals
+            document.getElementById('inv-subtotal').textContent = `$${subtotal.toFixed(2)}`;
+            document.getElementById('inv-discount').textContent = `-$${discount.toFixed(2)}`;
+            document.getElementById('inv-tax').textContent = `$${tax.toFixed(2)}`;
+            document.getElementById('inv-total').textContent = `$${total.toFixed(2)}`;
+
+            // Info
+            document.getElementById('inv-date').textContent = new Date().toISOString().split('T')[0];
+            document.getElementById('inv-customer').textContent = document.getElementById('card-name').value || 'Customer';
+            document.getElementById('inv-method').textContent = document.querySelector('input[name="paymentMethod"]:checked').value;
+
+            document.getElementById('invoice-overlay').style.display = 'flex';
+        }
+
+        function closeInvoice() {
+            document.getElementById('invoice-overlay').style.display = 'none';
+        }
+
+        document.getElementById('payment-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const cart = JSON.parse(localStorage.getItem(getCartKey()) || '[]');
+            document.getElementById('cart-json-input').value = JSON.stringify(cart.map(i => ({ id: i.id, quantity: i.quantity })));
+
+            document.getElementById('loading-overlay').style.display = 'flex';
+
+            // Simulate processing then show invoice
+            setTimeout(() => {
+                document.getElementById('loading-overlay').style.display = 'none';
+                showInvoice();
+
+                // Optional: Actually submit the form after user closes or prints
+                // For now, we'll just show the beautiful UI as requested
+            }, 2000);
+        });
+
+        // Init
+        document.getElementById('method-card').classList.add('selected');
+        updatePaymentMethods();
+        loadTotals();
+    </script>
+</body>
+
+</html>

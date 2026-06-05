@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store - HotelCraft</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-body: #0a0f1d;
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+            --card-bg: #161e31;
+            --border-sidebar: rgba(255, 255, 255, 0.05);
+            --primary: #2dd4bf;
+            --accent: #818cf8;
+            --grad-btn: linear-gradient(135deg, #818cf8, #a855f7);
+            --success: #10b981;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 3rem;
+            overflow-y: auto;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 3rem;
+        }
+
+        .header-section h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin: 0;
+            color: var(--primary);
+            letter-spacing: -0.02em;
+        }
+
+        .header-section p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin: 0.5rem 0 0 0;
+            font-weight: 500;
+        }
+
+        .view-cart-pill {
+            position: relative;
+            background: rgba(129, 140, 248, 0.1);
+            border: 1px solid rgba(129, 140, 248, 0.2);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 2rem;
+            text-decoration: none;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.2s;
+        }
+
+        .view-cart-pill:hover {
+            background: rgba(129, 140, 248, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .cart-badge-red {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ef4444;
+            color: white;
+            font-size: 0.7rem;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+            display: none;
+        }
+
+        .banner {
+            width: 100%;
+            height: 400px;
+            border-radius: 2.5rem;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 3rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .banner img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: brightness(0.6);
+        }
+
+        .banner-content {
+            position: absolute;
+            bottom: 4rem;
+            left: 4rem;
+            z-index: 2;
+        }
+
+        .banner-content h2 {
+            font-size: 4rem;
+            font-weight: 800;
+            margin: 0;
+            color: white;
+            line-height: 1.1;
+        }
+
+        .banner-content p {
+            font-size: 1.25rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin: 1rem 0 0 0;
+            font-weight: 500;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2.5rem;
+            margin-bottom: 5rem;
+        }
+
+        .product-card {
+            background: var(--card-bg);
+            border-radius: 2rem;
+            padding: 2rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid transparent;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .product-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(129, 140, 248, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .product-img-container {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: #1e293b;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .product-img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .product-img-container i {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+        }
+
+        .product-details h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 0 0.5rem 0;
+            color: white;
+        }
+
+        .product-price {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .product-footer {
+            margin-top: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .stock-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .stock-value {
+            color: var(--success);
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .add-to-cart-btn {
+            width: 100%;
+            background: var(--grad-btn);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 1.25rem;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            transition: all 0.2s;
+            margin-top: 0.5rem;
+            box-shadow: 0 8px 16px rgba(129, 140, 248, 0.2);
+        }
+
+        .add-to-cart-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 12px 24px rgba(129, 140, 248, 0.3);
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{fragments/sidebar :: sidebar('store')}"></div>
+
+    <div class="main-content">
+        <div th:replace="~{fragments/nav_tabs :: nav_tabs('store')}"></div>
+
+        <div class="header-top">
+            <div class="header-section">
+                <h1>Storefront</h1>
+                <p>Premium assets for your hospitality excellence</p>
+            </div>
+            <a th:href="@{/store/cart}" class="view-cart-pill">
+                <i data-lucide="shopping-cart"></i>
+                View Cart
+                <span id="cart-badge" class="cart-badge-red">0</span>
+            </a>
+        </div>
+
+        <!-- SECTION 1: TEXTILES -->
+        <div class="banner">
+            <img src="/images/elite_textiles_banner.png" alt="Elite Textiles">
+            <div class="banner-content">
+                <h2>Elite Textiles & Linens</h2>
+                <p>Premium garment assets for high-end hospitality</p>
+            </div>
+        </div>
+
+        <div class="products-grid">
+            <th:block th:each="product : ${products}" th:if="${product.name != null and (product.name.toLowerCase().contains('cover') or product.name.toLowerCase().contains('sheet') or product.name.toLowerCase().contains('curtain') or product.category == 'Garments')}">
+                <div class="product-card">
+                    <div class="product-img-container">
+                        <img th:if="${product.imagePath != null}" th:src="${product.imagePath}" alt="">
+                        <i th:if="${product.imagePath == null}" data-lucide="package"></i>
+                    </div>
+                    <div class="product-details">
+                        <h3 th:text="${product.name}">Product Name</h3>
+                        <div class="product-price">
+                            $ <span th:text="${product.discount > 0 ? #numbers.formatDecimal(product.price * (1 - product.discount/100), 1, 1) : product.price}">0.0</span>
+                        </div>
+                    </div>
+                    <div class="product-footer">
+                        <span class="stock-label">Available Stock</span>
+                        <span class="stock-value"><span th:text="${product.quantity}">0</span> units</span>
+                    </div>
+                    <button class="add-to-cart-btn" onclick="addToCartFromBtn(this)" 
+                            th:data-id="${product.id}" th:data-name="${product.name}" th:data-price="${product.discount > 0 ? product.price * (1 - product.discount/100) : product.price}">
+                        <i data-lucide="plus-circle"></i>
+                        Add to Cart
+                    </button>
+                </div>
+            </th:block>
+        </div>
+
+        <!-- SECTION 2: INDUSTRIAL -->
+        <div class="banner">
+            <img src="/images/iron_furniture_banner.png" alt="Industrial Ironware">
+            <div class="banner-content">
+                <h2>Industrial Ironware & Hospitality Furniture</h2>
+                <p>Heavy-duty assets for professional hotel management</p>
+            </div>
+        </div>
+
+        <div class="products-grid">
+            <th:block th:each="product : ${products}" th:if="${product.name != null and not (product.name.toLowerCase().contains('cover') or product.name.toLowerCase().contains('sheet') or product.name.toLowerCase().contains('curtain') or product.category == 'Garments')}">
+                <div class="product-card">
+                    <div class="product-img-container">
+                        <img th:if="${product.imagePath != null}" th:src="${product.imagePath}" alt="">
+                        <i th:if="${product.imagePath == null}" data-lucide="box"></i>
+                    </div>
+                    <div class="product-details">
+                        <h3 th:text="${product.name}">Product Name</h3>
+                        <div class="product-price">
+                            $ <span th:text="${product.discount > 0 ? #numbers.formatDecimal(product.price * (1 - product.discount/100), 1, 1) : product.price}">0.0</span>
+                        </div>
+                    </div>
+                    <div class="product-footer">
+                        <span class="stock-label">Available Stock</span>
+                        <span class="stock-value"><span th:text="${product.quantity}">0</span> units</span>
+                    </div>
+                    <button class="add-to-cart-btn" onclick="addToCartFromBtn(this)" 
+                            th:data-id="${product.id}" th:data-name="${product.name}" th:data-price="${product.discount > 0 ? product.price * (1 - product.discount/100) : product.price}">
+                        <i data-lucide="plus-circle"></i>
+                        Add to Cart
+                    </button>
+                </div>
+            </th:block>
+        </div>
+
+        <div id="current-user-email" style="display: none;" sec:authentication="name">anonymousUser</div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        function getCartKey() {
+            const userEmail = document.getElementById('current-user-email')?.textContent || 'anonymousUser';
+            return `hotelcraft_cart_${userEmail}`;
+        }
+
+        function getCart() {
+            return JSON.parse(localStorage.getItem(getCartKey()) || '[]');
+        }
+
+        function saveCart(cart) {
+            localStorage.setItem(getCartKey(), JSON.stringify(cart));
+            updateCartCount();
+        }
+
+        function addToCartFromBtn(btn) {
+            const id = parseInt(btn.getAttribute('data-id'));
+            const name = btn.getAttribute('data-name');
+            const price = parseFloat(btn.getAttribute('data-price'));
+            
+            let cart = getCart();
+            let item = cart.find(i => i.id === id);
+
+            if (item) {
+                item.quantity += 1;
+            } else {
+                cart.push({ id, name, price, quantity: 1 });
+            }
+
+            saveCart(cart);
+            alert(name + " added to cart!");
+        }
+
+        function updateCartCount() {
+            const cart = getCart();
+            const count = cart.reduce((sum, i) => sum + i.quantity, 0);
+            const badge = document.getElementById('cart-badge');
+            if (count > 0) {
+                badge.textContent = count;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        updateCartCount();
+    </script>
+</body>
+
+</html>
