@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock History - HotelCraft</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            /* Variables inherited from sidebar fragment */
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2.5rem;
+            overflow-y: auto;
+            background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .header h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0 0 0.5rem 0;
+            letter-spacing: -0.02em;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 1.25rem;
+            border: 1px solid var(--border-sidebar);
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 1.25rem 1.5rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            background: var(--nav-item-hover-bg);
+            border-bottom: 1px solid var(--border-sidebar);
+            font-weight: 700;
+        }
+
+        td {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-sidebar);
+            font-size: 0.95rem;
+            color: var(--text-main);
+        }
+
+        .movement-plus {
+            color: #4ade80;
+            font-weight: 700;
+        }
+
+        .movement-minus {
+            color: #f87171;
+            font-weight: 700;
+        }
+
+        .type-badge {
+            padding: 0.3rem 0.6rem;
+            border-radius: 0.5rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .type-production {
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--primary);
+        }
+
+        .type-consumption {
+            background: rgba(234, 179, 8, 0.15);
+            color: #facc15;
+        }
+
+        .type-restock {
+            background: rgba(34, 197, 94, 0.15);
+            color: #4ade80;
+        }
+
+        .type-adjustment {
+            background: rgba(148, 163, 184, 0.15);
+            color: #94a3b8;
+        }
+
+        .type-delivery {
+            background: rgba(192, 132, 252, 0.15);
+            color: var(--accent);
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{fragments/sidebar :: sidebar(${product != null ? 'finished-products' : 'raw-materials'})}"></div>
+
+    <div class="main-content">
+        <div class="header">
+            <div>
+                <a th:href="@{${product != null ? '/inventory/finished-products' : '/inventory/raw-materials'}}"
+                    style="color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                    <i data-lucide="arrow-left" size="18"></i>
+                    Back to Inventory
+                </a>
+                <h2>Stock History</h2>
+                <div style="color: var(--text-muted);">
+                    Viewing activity for:
+                    <strong style="color: var(--text);" th:text="${product != null ? product.name : material.name}">Item
+                        Name</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Activity</th>
+                        <th>Type</th>
+                        <th>Customer</th>
+                        <th>Change</th>
+                        <th>Remarks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="move : ${history}">
+                        <td th:text="${#temporals.format(move.timestamp, 'yyyy-MM-dd HH:mm:ss')}"
+                            style="color: var(--text-muted); font-family: monospace;"></td>
+                        <td>
+                            <span th:if="${move.product != null}" th:text="${move.product.name}"></span>
+                            <span th:if="${move.rawMaterial != null}" th:text="${move.rawMaterial.name}"></span>
+                        </td>
+                        <td>
+                            <span class="type-badge" th:classappend="${'type-' + move.type.toLowerCase()}"
+                                th:text="${move.type}"></span>
+                        </td>
+                        <td th:text="${move.customerName != null ? move.customerName : '-'}" style="font-weight: 500;">
+                        </td>
+                        <td>
+                            <span th:class="${move.changeAmount > 0 ? 'movement-plus' : 'movement-minus'}"
+                                th:text="${(move.changeAmount > 0 ? '+' : '') + move.changeAmount}"></span>
+                        </td>
+                        <td th:text="${move.remarks}" style="font-size: 0.85rem; color: var(--text-muted);"></td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(history)}">
+                        <td colspan="5" style="text-align:center; padding: 4rem; color: var(--text-muted);">
+                            No history entries found for this item.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

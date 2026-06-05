@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bill of Materials - <span th:text="${product.name}"></span> - HotelCraft</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            /* Variables inherited from sidebar fragment */
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2.5rem;
+            overflow-y: auto;
+            background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .header h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0 0 0.5rem 0;
+            letter-spacing: -0.02em;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: inherit;
+            font-size: 0.9rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--grad-inventory);
+            color: white;
+            margin-top: 1rem;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 1.25rem;
+            border: 1px solid var(--border-sidebar);
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            transition: all 0.3s;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 1.25rem 1.5rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            background: var(--nav-item-hover-bg);
+            border-bottom: 1px solid var(--border-sidebar);
+            font-weight: 700;
+        }
+
+        td {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-sidebar);
+            font-size: 0.95rem;
+            color: var(--text-main);
+        }
+
+        .form-card {
+            padding: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--bg-body);
+            border: 1px solid var(--border-sidebar);
+            border-radius: 0.75rem;
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: all 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            background: rgba(34, 197, 94, 0.1);
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{fragments/sidebar :: sidebar('finished-products')}"></div>
+
+    <div class="main-content">
+        <div class="header">
+            <div>
+                <a th:href="@{/inventory/finished-products}"
+                    style="color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                    <i data-lucide="arrow-left" size="18"></i>
+                    Back to Products
+                </a>
+                <h2>Bill of Materials (BOM)</h2>
+                <div style="color: var(--text-muted);">
+                    Defining material type requirements for: <strong style="color: var(--text);"
+                        th:text="${product.name}">Product Name</strong>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${success}" class="alert" th:text="${success}"></div>
+
+        <div style="display: grid; grid-template-columns: 1fr 350px; gap: 2rem;">
+            <!-- Current BOM -->
+            <div>
+                <div class="card">
+                    <div
+                        style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-sidebar); background: var(--nav-item-hover-bg);">
+                        <h3 style="margin:0; font-size: 1.1rem;">Required Material Types</h3>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Material Type</th>
+                                <th>Required Qty</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="item : ${bom}">
+                                <td th:text="${item.rawMaterial.name}" style="font-weight: 600;"></td>
+                                <td th:text="${item.quantityRequired}"></td>
+                                <td>
+                                    <form th:action="@{'/inventory/finished-products/bom/delete/' + ${item.id}}"
+                                        method="post">
+                                        <input type="hidden" name="productId" th:value="${product.id}">
+                                        <button type="submit"
+                                            style="background:none; border:none; color: #ef4444; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:0.4rem;">
+                                            <i data-lucide="trash-2" size="14"></i>
+                                            Remove
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(bom)}">
+                                <td colspan="3" style="text-align:center; padding: 3rem; color: var(--text-muted);">
+                                    No material types assigned yet.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Add New BOM Item -->
+            <div>
+                <div class="card form-card">
+                    <h3 style="margin-top:0; margin-bottom:1.5rem; font-size: 1.1rem;">Add Requirement</h3>
+                    <form th:action="@{'/inventory/finished-products/bom/' + ${product.id} + '/add'}" method="post">
+                        <div class="form-group">
+                            <label>Material Type (e.g. Glass/Wetllok)</label>
+                            <select name="materialId" class="form-control" required>
+                                <option value="">Select a material type...</option>
+                                <option th:each="material : ${allMaterials}" th:value="${material.id}"
+                                    th:text="${material.name + (material.category != null ? ' (' + material.category + ')' : '')}">
+                                </option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Quantity Required (per unit)</label>
+                            <input type="number" name="quantity" class="form-control" min="1" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">
+                            <i data-lucide="plus"></i>
+                            Add to BOM
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
