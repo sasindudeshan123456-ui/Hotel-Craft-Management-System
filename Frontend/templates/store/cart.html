@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart - HotelCraft</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2.5rem;
+            overflow-y: auto;
+            background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .header h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 0;
+            background: var(--grad-analytics);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
+        .btn-link {
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .btn-link:hover {
+            color: #818cf8;
+        }
+
+        .cart-container {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 2rem;
+        }
+
+        .cart-items {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-sidebar);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            max-height: calc(100vh - 250px);
+            overflow-y: auto;
+            transition: all 0.3s;
+        }
+
+        .cart-item {
+            display: grid;
+            grid-template-columns: 60px 1fr 120px 100px 40px;
+            align-items: center;
+            gap: 1.5rem;
+            padding: 1.5rem 0;
+            border-bottom: 1px solid var(--border-sidebar);
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+        }
+
+        .item-details h4 {
+            margin: 0 0 0.25rem 0;
+            font-size: 1.1rem;
+        }
+
+        .item-details p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 0.25rem;
+        }
+
+        .qty-btn {
+            background: transparent;
+            border: none;
+            color: var(--text);
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.5rem;
+            transition: background 0.2s;
+        }
+
+        .qty-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .qty-input {
+            width: 30px;
+            text-align: center;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .item-total {
+            font-weight: 700;
+            text-align: right;
+            font-size: 1.1rem;
+        }
+
+        .remove-btn {
+            background: transparent;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+
+        .remove-btn:hover {
+            opacity: 1;
+        }
+
+        .summary-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-sidebar);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            height: fit-content;
+            position: sticky;
+            top: 2.5rem;
+            transition: all 0.3s;
+        }
+
+        .summary-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border-sidebar);
+            padding-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .edit-toggle-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .edit-toggle-btn:hover {
+            color: var(--primary);
+        }
+
+        .edit-toggle-btn.active {
+            color: var(--accent);
+        }
+
+        .edit-field {
+            display: none !important;
+        }
+
+        .summary-card.edit-mode .edit-field {
+            display: flex !important;
+        }
+
+        .summary-card.edit-mode .static-field {
+            display: none !important;
+        }
+
+        .settings-panel {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+
+        .settings-panel.active {
+            display: block;
+        }
+
+        .settings-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .settings-row label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .settings-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: white;
+            border-radius: 0.5rem;
+            padding: 0.4rem;
+            font-size: 0.85rem;
+            box-sizing: border-box;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+
+        .summary-total {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-sidebar);
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--accent-primary);
+        }
+
+        .checkout-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 1rem;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin-top: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            transition: all 0.2s;
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
+        }
+
+        .checkout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px rgba(99, 102, 241, 0.3);
+        }
+
+        .empty-cart {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .empty-cart i {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 1.5rem;
+            opacity: 0.2;
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{fragments/sidebar :: sidebar('store')}"></div>
+
+    <div class="main-content">
+        <div th:replace="~{fragments/nav_tabs :: nav_tabs('store')}"></div>
+        <div class="header">
+            <div>
+                <h2>Your Cart</h2>
+                <a th:href="@{/store}" class="btn-link">
+                    <i data-lucide="arrow-left"></i>
+                    Back to Store
+                </a>
+            </div>
+            <div id="current-user-email" style="display: none;" sec:authentication="name">anonymousUser</div>
+        </div>
+
+        <div id="cart-content" class="cart-container">
+            <!-- List View -->
+            <div class="cart-items" id="cart-items-list">
+                <!-- Items injected by JS -->
+            </div>
+
+            <!-- Summary View -->
+            <div class="summary-card" id="summary-card">
+                <div class="summary-title">
+                    <span>Summary</span>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="edit-toggle-btn" id="settings-toggle"
+                            sec:authorize="hasAnyAuthority('CART_DISCOUNT') or hasRole('ADMIN')"
+                            title="Discount Settings">
+                            <i data-lucide="settings" size="18"></i>
+                        </button>
+                        <button class="edit-toggle-btn" id="edit-mode-toggle"
+                            sec:authorize="hasAnyAuthority('CART_EDIT') or hasRole('ADMIN')" title="Manual Override">
+                            <i data-lucide="pencil" size="18"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Settings Panel -->
+                <div class="settings-panel" id="settings-panel">
+                    <p style="margin: 0 0 1rem 0; font-size: 0.85rem; font-weight: 600; color: var(--accent);">Tier
+                        Configurations</p>
+                    <div class="settings-row">
+                        <div>
+                            <label>Tier 1 Min ($)</label>
+                            <input type="number" id="t1-min" class="settings-input" value="500">
+                        </div>
+                        <div>
+                            <label>Tier 1 (%)</label>
+                            <input type="number" id="t1-pct" class="settings-input" value="5">
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <div>
+                            <label>Tier 2 Min ($)</label>
+                            <input type="number" id="t2-min" class="settings-input" value="1000">
+                        </div>
+                        <div>
+                            <label>Tier 2 (%)</label>
+                            <input type="number" id="t2-pct" class="settings-input" value="10">
+                        </div>
+                    </div>
+                    <button class="checkout-btn" id="save-settings-btn"
+                        style="margin-top: 0.5rem; padding: 0.5rem; font-size: 0.9rem;">
+                        Save Tiers
+                    </button>
+                </div>
+
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span id="subtotal">$0.00</span>
+                </div>
+
+                <!-- Discount Row -->
+                <div class="summary-row" id="discount-row-container">
+                    <span id="discount-label">Discount</span>
+                    <div class="edit-field" style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span>$</span><input type="number" id="discount-input" value="0.00" min="0" step="0.01"
+                            style="width: 80px; background: rgba(0,0,0,0.2); border: 1px solid var(--border); color: #4ade80; border-radius: 4px; padding: 2px 4px; text-align: right;">
+                    </div>
+                    <span id="discount-auto-val" class="static-field">$0.00</span>
+                </div>
+
+                <!-- Tax Row -->
+
+                <!-- Tax Row -->
+                <div class="summary-row" id="tax-row">
+                    <span>Tax (%)</span>
+                    <div class="edit-field" style="display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="number" id="tax-input" value="5" min="0" max="100" step="0.1"
+                            style="width: 60px; background: rgba(0,0,0,0.2); border: 1px solid var(--border); color: white; border-radius: 4px; padding: 2px 4px; text-align: right;">
+                    </div>
+                    <span id="tax" class="static-field">$0.00</span>
+                </div>
+
+                <div class="summary-total">
+                    <span>Total</span>
+                    <span id="grand-total">$0.00</span>
+                </div>
+
+                <form th:action="@{/store/checkout}" method="post">
+                    <button type="submit" class="checkout-btn" id="checkout-btn" disabled>
+                        <i data-lucide="credit-card"></i>
+                        Proceed to Payment
+                    </button>
+                </form>
+
+            </div>
+        </div>
+
+        <div id="empty-state" class="empty-cart" style="display: none;">
+            <i data-lucide="shopping-cart"></i>
+            <h3>Your cart is empty</h3>
+            <p>Looks like you haven't added anything to your cart yet.</p>
+            <br>
+            <a th:href="@{/store}" class="checkout-btn"
+                style="max-width: 250px; margin: 0 auto; text-decoration: none;">
+                Browse Items
+            </a>
+        </div>
+    </div>
+
+    <!-- Hidden element to check for CART_DISCOUNT permission -->
+    <div id="has-discount-perm" style="display: none;" sec:authorize="hasAuthority('CART_DISCOUNT')">true</div>
+    <div id="has-cart-edit" style="display: none;" sec:authorize="hasAnyAuthority('CART_EDIT') or hasRole('ADMIN')">true
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        function getCartKey() {
+            const userEmail = document.getElementById('current-user-email')?.textContent || 'anonymousUser';
+            return `hotelcraft_cart_${userEmail}`;
+        }
+
+        function getCart() {
+            return JSON.parse(localStorage.getItem(getCartKey()) || '[]');
+        }
+
+        function saveCart(cart) {
+            localStorage.setItem(getCartKey(), JSON.stringify(cart));
+            renderCart();
+        }
+
+        function removeFromCart(id) {
+            let cart = getCart();
+            cart = cart.filter(item => item.id !== id);
+            saveCart(cart);
+        }
+
+        function updateQuantity(id, change) {
+            let cart = getCart();
+            let item = cart.find(item => item.id === id);
+            if (item) {
+                item.quantity += change;
+                if (item.quantity <= 0) {
+                    removeFromCart(id);
+                } else {
+                    saveCart(cart);
+                }
+            }
+        }
+
+        function getDiscountSettings() {
+            const defaults = {
+                t1Min: 500, t1Pct: 5,
+                t2Min: 1000, t2Pct: 10
+            };
+            const stored = JSON.parse(localStorage.getItem('hotelcraft_discount_tiers') || '{}');
+            // Merge with defaults to ensure all fields exist
+            return {
+                t1Min: stored.t1Min !== undefined ? stored.t1Min : defaults.t1Min,
+                t1Pct: stored.t1Pct !== undefined ? stored.t1Pct : defaults.t1Pct,
+                t2Min: stored.t2Min !== undefined ? stored.t2Min : defaults.t2Min,
+                t2Pct: stored.t2Pct !== undefined ? stored.t2Pct : defaults.t2Pct
+            };
+        }
+
+        function saveDiscountSettings(settings) {
+            localStorage.setItem('hotelcraft_discount_tiers', JSON.stringify(settings));
+            renderCart();
+        }
+
+        function renderCart(liveSettings = null) {
+            const cart = getCart();
+            const listContainer = document.getElementById('cart-items-list');
+            const cartContent = document.getElementById('cart-content');
+            const emptyState = document.getElementById('empty-state');
+            const checkoutBtn = document.getElementById('checkout-btn');
+
+            const hasDiscountPerm = document.getElementById('has-discount-perm')?.textContent === 'true';
+            const hasCartEdit = document.getElementById('has-cart-edit')?.textContent === 'true';
+
+            if (cart.length === 0) {
+                cartContent.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            cartContent.style.display = 'grid';
+            emptyState.style.display = 'none';
+            checkoutBtn.disabled = false;
+
+            let html = '';
+            let subtotal = 0;
+
+            cart.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                subtotal += itemTotal;
+
+                html += `
+                    <div class="cart-item">
+                        <div class="item-icon">
+                            <i data-lucide="package"></i>
+                        </div>
+                        <div class="item-details">
+                            <h4>${item.name}</h4>
+                            <p>$${item.price.toFixed(2)} / unit</p>
+                        </div>
+                        <div class="quantity-control">
+                            <button class="qty-btn" onclick="updateQuantity(${item.id}, -1)"><i data-lucide="minus" size="14"></i></button>
+                            <span class="qty-input">${item.quantity}</span>
+                            <button class="qty-btn" onclick="updateQuantity(${item.id}, 1)"><i data-lucide="plus" size="14"></i></button>
+                        </div>
+                        <div class="item-total">$${itemTotal.toFixed(2)}</div>
+                        <button class="remove-btn" onclick="removeFromCart(${item.id})"><i data-lucide="trash-2" size="20"></i></button>
+                    </div>
+                `;
+            });
+
+            listContainer.innerHTML = html;
+
+            const settings = liveSettings || getDiscountSettings();
+            let taxRate = 0.05;
+
+            const discountRowContainer = document.getElementById('discount-row-container');
+            const discountInput = document.getElementById('discount-input');
+            const autoDiscountEl = document.getElementById('discount-auto-val');
+            const taxInput = document.getElementById('tax-input');
+
+            // 1. Calculate suggested discount based on tiers
+            let applicablePct = 0;
+            let tierName = '';
+            if (subtotal >= settings.t2Min && settings.t2Pct > 0) {
+                applicablePct = settings.t2Pct / 100;
+                tierName = `Tier 2 (${settings.t2Pct}%)`;
+            } else if (subtotal >= settings.t1Min && settings.t1Pct > 0) {
+                applicablePct = settings.t1Pct / 100;
+                tierName = `Tier 1 (${settings.t1Pct}%)`;
+            }
+            const suggestedDiscount = subtotal * applicablePct;
+
+            let finalDiscount = 0;
+            const discountLabel = document.getElementById('discount-label');
+
+            if (hasCartEdit) {
+                // Read from manual inputs
+                if (taxInput) taxRate = parseFloat(taxInput.value) / 100;
+
+                if (discountInput) {
+                    // Logic: Auto-fill if not manual or if we are in "live preview" mode (typing in tiers)
+                    if (!discountInput.dataset.manual || liveSettings) {
+                        discountInput.value = suggestedDiscount.toFixed(2);
+                        // If we are explicitly typing in tiers, we treat it as auto-follow mode
+                        if (liveSettings) delete discountInput.dataset.manual;
+                    }
+                    finalDiscount = parseFloat(discountInput.value) || 0;
+                }
+
+                if (discountLabel) {
+                    const labelPrefix = discountInput.dataset.manual ? '(Manual)' : (tierName ? `(${tierName})` : '(Auto)');
+                    discountLabel.textContent = `Discount ${labelPrefix}`;
+                }
+
+                if (discountRowContainer) {
+                    discountRowContainer.style.opacity = (finalDiscount > 0 || tierName) ? '1' : '0.5';
+                }
+
+                if (autoDiscountEl) {
+                    autoDiscountEl.textContent = `-$${finalDiscount.toFixed(2)}`;
+                }
+            } else {
+                // Auto calculation for all customers
+                finalDiscount = suggestedDiscount;
+
+                if (discountLabel) {
+                    discountLabel.textContent = tierName ? `Discount (${tierName})` : 'Discount';
+                }
+
+                if (autoDiscountEl) {
+                    autoDiscountEl.textContent = `-$${finalDiscount.toFixed(2)}`;
+                    autoDiscountEl.parentElement.style.opacity = (finalDiscount > 0 || tierName) ? '1' : '0.5';
+                }
+            }
+
+            const subtotalLessDiscount = Math.max(0, subtotal - finalDiscount);
+            const taxAmount = subtotalLessDiscount * taxRate;
+            const total = subtotalLessDiscount + taxAmount;
+
+            document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
+
+            const taxDisplayEl = document.getElementById('tax');
+            if (taxDisplayEl) taxDisplayEl.textContent = `$${taxAmount.toFixed(2)}`;
+
+            document.getElementById('grand-total').textContent = `$${total.toFixed(2)}`;
+
+            lucide.createIcons();
+        }
+
+        // Add event listeners for manual edits
+        document.addEventListener('input', function (e) {
+            const targets = ['tax-input', 'discount-input', 't1-min', 't1-pct', 't2-min', 't2-pct'];
+            if (targets.includes(e.target.id)) {
+                if (e.target.id === 'discount-input') e.target.dataset.manual = "true";
+
+                let liveSettings = null;
+                if (['t1-min', 't1-pct', 't2-min', 't2-pct'].includes(e.target.id)) {
+                    liveSettings = {
+                        t1Min: parseFloat(document.getElementById('t1-min').value || 0),
+                        t1Pct: parseFloat(document.getElementById('t1-pct').value || 0),
+                        t2Min: parseFloat(document.getElementById('t2-min').value || 0),
+                        t2Pct: parseFloat(document.getElementById('t2-pct').value || 0)
+                    };
+                }
+
+                renderCart(liveSettings);
+            }
+        });
+
+        const settingsToggle = document.getElementById('settings-toggle');
+        const settingsPanel = document.getElementById('settings-panel');
+        if (settingsToggle) {
+            settingsToggle.addEventListener('click', function () {
+                settingsPanel.classList.toggle('active');
+                this.classList.toggle('active');
+
+                if (settingsPanel.classList.contains('active')) {
+                    const s = getDiscountSettings();
+                    document.getElementById('t1-min').value = s.t1Min;
+                    document.getElementById('t1-pct').value = s.t1Pct;
+                    document.getElementById('t2-min').value = s.t2Min;
+                    document.getElementById('t2-pct').value = s.t2Pct;
+                }
+            });
+        }
+
+        document.getElementById('save-settings-btn')?.addEventListener('click', function () {
+            const s = {
+                t1Min: parseFloat(document.getElementById('t1-min').value),
+                t1Pct: parseFloat(document.getElementById('t1-pct').value),
+                t2Min: parseFloat(document.getElementById('t2-min').value),
+                t2Pct: parseFloat(document.getElementById('t2-pct').value)
+            };
+            saveDiscountSettings(s);
+            settingsPanel.classList.remove('active');
+            settingsToggle.classList.remove('active');
+        });
+
+        const editToggle = document.getElementById('edit-mode-toggle');
+        if (editToggle) {
+            editToggle.addEventListener('click', function () {
+                const card = document.getElementById('summary-card');
+                card.classList.toggle('edit-mode');
+                this.classList.toggle('active');
+
+                // Change icon
+                const icon = this.querySelector('i');
+                if (card.classList.contains('edit-mode')) {
+                    icon.setAttribute('data-lucide', 'check');
+                } else {
+                    icon.setAttribute('data-lucide', 'pencil');
+                }
+                lucide.createIcons();
+            });
+        }
+
+        renderCart();
+
+    </script>
+</body>
+
+</html>
