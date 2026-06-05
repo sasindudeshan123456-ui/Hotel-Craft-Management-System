@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - HotelCraft</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        (function () {
+            const theme = localStorage.getItem('hotelcraft_theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+    <style>
+        :root {
+            /* Fallback variables for pages without sidebar */
+            --bg-body: #0f172a;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --border-sidebar: rgba(255, 255, 255, 0.1);
+            --accent-primary: #818cf8;
+            --primary: #818cf8;
+            --primary-hover: #6366f1;
+        }
+
+        [data-theme="light"] {
+            --bg-body: #f8fafc;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --border-sidebar: rgba(0, 0, 0, 0.1);
+            --accent-primary: #4f46e5;
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 2rem 0;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .signup-card {
+            background-color: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid var(--border-sidebar);
+            transition: all 0.3s;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .logo h1,
+        .signup-card h2 {
+            font-size: 2.25rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+            letter-spacing: -0.02em;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group.full {
+            grid-column: span 2;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--bg-body);
+            border: 1px solid var(--border-sidebar);
+            border-radius: 0.5rem;
+            color: var(--text-main);
+            font-size: 0.875rem;
+            box-sizing: border-box;
+            transition: all 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+
+        .error-text {
+            color: #fca5a5;
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+        }
+
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 1rem;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .footer-text a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="signup-card">
+        <div class="logo">
+            <h1>HotelCraft</h1>
+            <h2
+                style="margin-top: 1rem; font-size: 1.5rem; -webkit-text-fill-color: var(--text-main); background: none;">
+                Create Account</h2>
+        </div>
+
+        <form th:action="@{/signup}" th:object="${signupRequest}" method="post">
+            <div class="form-grid">
+                <div class="form-group full">
+                    <label for="fullName">Full Name</label>
+                    <input type="text" id="fullName" th:field="*{fullName}" placeholder="John Doe">
+                    <div class="error-text" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" th:field="*{email}" placeholder="john@example.com">
+                    <div class="error-text" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone</label>
+                    <input type="text" id="phone" th:field="*{phone}" placeholder="+94 771234567" pattern="^\+94\d{9}$"
+                        maxlength="12">
+                    <div id="phone-error" class="error-text" style="display:none;"></div>
+                    <div class="error-text" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></div>
+                </div>
+
+                <div class="form-group full">
+                    <label for="address">Address</label>
+                    <input type="text" id="address" th:field="*{address}" placeholder="123 Luxury St, Paradise City">
+                    <div class="error-text" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" th:field="*{password}" autocomplete="new-password">
+                    <div class="error-text" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input type="password" id="confirmPassword" th:field="*{confirmPassword}"
+                        autocomplete="new-password">
+                    <div class="error-text" th:if="${#fields.hasErrors('confirmPassword')}"
+                        th:errors="*{confirmPassword}"></div>
+                </div>
+            </div>
+
+            <button type="submit">Create Account</button>
+        </form>
+
+        <div class="footer-text">
+            Already have an account? <a th:href="@{/login}">Sign in</a>
+        </div>
+    </div>
+    <script>
+        const phoneInput = document.getElementById('phone');
+        const phoneError = document.getElementById('phone-error');
+        const passwordInput = document.getElementById('password');
+        const confirmInput = document.getElementById('confirmPassword');
+
+        // Initialize prefix if empty
+        if (!phoneInput.value) {
+            phoneInput.value = '+94';
+        }
+
+        function validatePhone() {
+            const val = phoneInput.value;
+            const suffix = val.substring(3);
+
+            if (suffix.length > 0 && !/^\d+$/.test(suffix)) {
+                phoneError.textContent = 'Only numbers are allowed after +94';
+                phoneError.style.display = 'block';
+                phoneInput.style.borderColor = '#ef4444';
+                return false;
+            } else if (suffix.length > 0 && suffix.length !== 9) {
+                phoneError.textContent = 'Exactly 9 digits are required';
+                phoneError.style.display = 'block';
+                phoneInput.style.borderColor = '#ef4444';
+                return false;
+            } else {
+                phoneError.style.display = 'none';
+                phoneInput.style.borderColor = '';
+                return true;
+            }
+        }
+
+        function validateComplexity() {
+            const val = passwordInput.value;
+            const container = passwordInput.parentElement;
+
+            container.querySelectorAll('.client-error').forEach(e => e.remove());
+
+            if (!val) return true;
+
+            const rules = [
+                { reg: /.{8,}/, msg: "Minimum 8 characters required" },
+                { reg: /[A-Z]/, msg: "At least one uppercase letter required" },
+                { reg: /[a-z]/, msg: "At least one lowercase letter required" },
+                { reg: /\d/, msg: "At least one number required" },
+                { reg: /[^a-zA-Z\d\s]/, msg: "At least one special character required" }
+            ];
+
+            let isValid = true;
+            rules.forEach(rule => {
+                if (!rule.reg.test(val)) {
+                    const err = document.createElement('div');
+                    err.className = 'error-text client-error';
+                    err.textContent = rule.msg;
+                    passwordInput.after(err);
+                    isValid = false;
+                }
+            });
+
+            passwordInput.style.borderColor = isValid ? '' : '#fca5a5';
+            return isValid;
+        }
+
+        function validatePasswords() {
+            const p1 = passwordInput.value;
+            const p2 = confirmInput.value;
+
+            // Remove existing error if any
+            confirmInput.parentElement.querySelectorAll('.client-error').forEach(e => e.remove());
+
+            if (p2 && p1 !== p2) {
+                const err = document.createElement('div');
+                err.className = 'error-text client-error';
+                err.textContent = 'Passwords do not match';
+                confirmInput.after(err);
+                confirmInput.style.borderColor = '#fca5a5';
+                return false;
+            } else {
+                confirmInput.style.borderColor = '';
+                return true;
+            }
+        }
+
+        passwordInput.addEventListener('input', function () {
+            const serverError = this.parentElement.querySelector('div:not(.client-error).error-text');
+            if (serverError) serverError.style.display = 'none';
+            validateComplexity();
+            validatePasswords();
+        });
+
+        confirmInput.addEventListener('input', function () {
+            const serverError = this.parentElement.querySelector('div:not(.client-error).error-text');
+            if (serverError) serverError.style.display = 'none';
+            validatePasswords();
+        });
+
+        [passwordInput, confirmInput].forEach(el => {
+            el.addEventListener('input', validatePasswords);
+        });
+
+        // Initialize validation state
+        if (phoneInput.value.length > 3) validatePhone();
+    </script>
+</body>
+
+</html>
