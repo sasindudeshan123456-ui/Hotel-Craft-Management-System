@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Orders - HotelCraft Admin</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 1.5rem 2rem;
+            overflow-y: auto;
+            background: var(--bg-body);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .header h2 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            margin: 0;
+            color: var(--text-main);
+            letter-spacing: -0.02em;
+        }
+
+        .table-container {
+            background: transparent;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 0.5rem;
+            text-align: left;
+        }
+
+        th {
+            padding: 0.75rem 1.25rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #64748b;
+            border: none;
+        }
+
+        tr.booking-row {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-sidebar);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        tr.booking-row:hover {
+            background: var(--nav-item-hover-bg);
+            transform: translateY(-1px);
+            box-shadow: var(--card-hover-shadow);
+        }
+
+        td {
+            padding: 0.75rem 1.25rem;
+            font-size: 0.85rem;
+            color: var(--text-main);
+            border-top: 1px solid var(--border-sidebar);
+            border-bottom: 1px solid var(--border-sidebar);
+        }
+
+        td:first-child {
+            border-left: 1px solid var(--border-sidebar);
+            border-radius: 1rem 0 0 1rem;
+            font-weight: 800;
+            color: var(--accent-primary);
+            width: 60px;
+        }
+
+        td:last-child {
+            border-right: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 0 1rem 1rem 0;
+        }
+
+        .status-pill {
+            padding: 0.3rem 0.75rem;
+            border-radius: 2rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: var(--nav-item-hover-bg);
+            border: 1px solid var(--border-sidebar);
+        }
+
+        .status-approved {
+            background: rgba(34, 197, 94, 0.1);
+            color: #4ade80;
+            border-color: rgba(34, 197, 94, 0.2);
+        }
+
+        .status-pending {
+            background: rgba(234, 179, 8, 0.1);
+            color: #fde047;
+            border-color: rgba(234, 179, 8, 0.2);
+        }
+
+        .status-cancelled {
+            background: transparent;
+            color: #94a3b8;
+            border: none;
+            padding: 0;
+            font-weight: 500;
+            text-transform: capitalize;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .btn-action {
+            height: 36px;
+            padding: 0 1rem;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            border: 1px solid var(--border-sidebar);
+            text-decoration: none;
+        }
+
+        .btn-approve {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white;
+        }
+
+        .btn-approve:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.1);
+        }
+
+        .btn-invoice {
+            background: rgba(167, 139, 250, 0.1);
+            color: #c4b5fd;
+            border-color: rgba(167, 139, 250, 0.2);
+        }
+
+        .btn-invoice:hover {
+            background: rgba(167, 139, 250, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .btn-edit {
+            background: rgba(255, 255, 255, 0.05);
+            color: #cbd5e1;
+        }
+
+        .btn-edit:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+            color: white;
+        }
+
+        .btn-delete {
+            background: rgba(239, 68, 68, 0.1);
+            color: #f87171;
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        .btn-delete:hover {
+            background: #ef4444;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border: 1px solid var(--border-sidebar);
+            border-radius: 2rem;
+            width: 90%;
+            max-width: 600px;
+            padding: 2.5rem;
+            box-shadow: var(--card-shadow);
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .modal-close:hover {
+            color: var(--text);
+        }
+
+        .invoice-container {
+            background: white;
+            color: #1e293b;
+            padding: 2rem;
+            border-radius: 1rem;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 1rem;
+        }
+
+        .invoice-table {
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+
+        .invoice-table th {
+            color: #64748b;
+            border-bottom: 1px solid #f1f5f9;
+            padding: 0.75rem 0;
+        }
+
+        .invoice-table td {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f8fafc;
+        }
+
+        .invoice-summary {
+            display: flex;
+            justify-content: flex-end;
+            gap: 2rem;
+        }
+
+        .summary-item {
+            text-align: right;
+        }
+
+        .thank-you {
+            margin-top: 2rem;
+            text-align: center;
+            font-style: italic;
+            color: #94a3b8;
+        }
+
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            background: rgba(34, 197, 94, 0.1);
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{fragments/sidebar :: sidebar('bookings')}"></div>
+
+    <div class="main-content">
+        <div class="header">
+            <div>
+                <h2>Order Management</h2>
+                <p style="color: var(--text-muted);">Oversee all user orders and payment statuses</p>
+            </div>
+        </div>
+
+        <div th:if="${success}" class="alert">
+            <i data-lucide="check-circle"></i>
+            <span th:text="${success}"></span>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Booking ID</th>
+                        <th>Customer</th>
+                        <th>Category & Details</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="booking : ${bookings}" class="booking-row">
+                        <td th:text="${booking.id}"></td>
+                        <td style="font-weight: 700;" th:text="${booking.customerName ?: (booking.user != null ? booking.user.fullName : 'Guest')}"></td>
+                        <td>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <span style="font-weight: 600;" th:text="${booking.roomType ?: 'Store Purchase'}"></span>
+                                <small style="color: #94a3b8; font-size: 0.8rem;" th:text="${booking.items != null and !#lists.isEmpty(booking.items) ? 
+                                    #strings.listJoin(booking.items.![product.name + ' (x' + quantity + ')'], ', ') : 
+                                    'No specific items'}"></small>
+                            </div>
+                        </td>
+                        <td th:text="'$' + ${booking.totalAmount}"></td>
+                        <td>
+                            <span class="status-pill"
+                                th:classappend="${booking.status == 'Approved' ? 'status-approved' : (booking.status == 'Pending' ? 'status-pending' : (booking.status == 'Cancelled' ? 'status-cancelled' : ''))}">
+                                <i th:if="${booking.status == 'Approved'}" data-lucide="check-circle" size="14"></i>
+                                <i th:if="${booking.status == 'Pending'}" data-lucide="clock" size="14"></i>
+                                <span th:text="${booking.status}"></span>
+                            </span>
+                        </td>
+                        <td th:text="${#temporals.format(booking.createdAt, 'yyyy-MM-dd')}"></td>
+                        <td>
+                            <div class="btn-group" style="justify-content: flex-end;">
+                                <button th:if="${booking.status == 'Approved'}" class="btn-action btn-invoice"
+                                    th:data-id="${booking.id}"
+                                    th:data-customer="${booking.customerName ?: (booking.user != null ? booking.user.fullName : 'Guest')}"
+                                    th:data-date="${booking.approvalDate != null ? #temporals.format(booking.approvalDate, 'yyyy-MM-dd') : #temporals.format(booking.createdAt, 'yyyy-MM-dd')}"
+                                    th:data-phone="${booking.user != null ? booking.user.phone : 'N/A'}"
+                                    th:data-payment="${booking.paymentMethod ?: 'Credit Card'}"
+                                    th:data-status="${booking.status}" th:data-total="${booking.totalAmount}"
+                                    th:data-discount="${booking.discount ?: 0}"
+                                    th:data-items="${booking.items != null ? #strings.listJoin(booking.items.![product.name + ':' + quantity + ':' + unitPrice + ':' + subtotal], '|') : ''}"
+                                    onclick="viewInvoice(this)" sec:authorize="hasAuthority('BOOKING_MANAGE')">
+                                    <i data-lucide="file-text" size="16"></i> Invoice
+                                </button>
+                                
+                                <form th:if="${booking.status == 'Pending'}"
+                                    th:action="@{/admin/bookings/approve/{id}(id=${booking.id})}" method="post"
+                                    style="display:inline;">
+                                    <button type="submit" class="btn-action btn-approve"
+                                        sec:authorize="hasAuthority('BOOKING_MANAGE')">
+                                        <i data-lucide="thumbs-up" size="16"></i> Approve
+                                    </button>
+                                </form>
+
+                                <a th:href="@{/admin/bookings/edit/{id}(id=${booking.id})}" class="btn-action btn-edit"
+                                    sec:authorize="hasAuthority('BOOKING_MANAGE')">
+                                    <i data-lucide="pencil" size="16"></i> Edit
+                                </a>
+
+                                <form th:action="@{/admin/bookings/delete/{id}(id=${booking.id})}" method="post"
+                                    style="display:inline;"
+                                    onsubmit="return confirm('Are you sure you want to delete this booking?')"
+                                    sec:authorize="hasAuthority('BOOKING_MANAGE')">
+                                    <button type="submit" class="btn-action btn-delete">
+                                        <i data-lucide="trash-2" size="16"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    </div>
+
+    <!-- Invoice Modal -->
+    <div id="invoiceModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="margin: 0;">Order Invoice</h3>
+                <button class="modal-close" onclick="closeModal()">
+                    <i data-lucide="x" size="24"></i>
+                </button>
+            </div>
+            <div id="invoicePrintArea" class="invoice-container">
+                <div class="invoice-header">
+                    <div>
+                        <h4 style="margin: 0; color: var(--primary);">HotelCraft</h4>
+                        <p style="font-size: 0.8rem; margin: 0.2rem 0;">Invoice #<span id="invId"></span></p>
+                    </div>
+                    <div style="text-align: right;">
+                        <p style="font-size: 0.8rem; margin: 0; color: #64748b;">Date: <span id="invDate"></span></p>
+                        <p style="font-size: 0.8rem; margin: 0; color: #64748b;">Phone: +94 740860141</p>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <p style="font-size: 0.9rem; margin-bottom: 0.5rem;"><strong>Customer:</strong> <span
+                            id="invCustomer"></span></p>
+                    <p style="font-size: 0.9rem; margin: 0;"><strong>Payment Method:</strong> <span
+                            id="invPayment"></span></p>
+                    <p style="font-size: 0.9rem; margin: 0;"><strong>Status:</strong> <span id="invStatus"
+                            style="color: #22c55e; font-weight: 700;"></span></p>
+                </div>
+
+                <table class="invoice-table">
+                    <thead>
+                        <tr>
+                            <th align="left">Description</th>
+                            <th align="center">Qty</th>
+                            <th align="right">Price</th>
+                            <th align="right">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invItems">
+                        <!-- Items will be injected here -->
+                    </tbody>
+                </table>
+
+                <div class="invoice-summary">
+                    <div>
+                        <div class="summary-item">
+                            <span style="color: #64748b;">Subtotal:</span>
+                            <span id="invSubtotal"
+                                style="font-weight: 600; min-width: 80px; display: inline-block;"></span>
+                        </div>
+                        <div class="summary-item">
+                            <span style="color: #ef4444;">Discount:</span>
+                            <span id="invDiscount"
+                                style="font-weight: 600; min-width: 80px; display: inline-block;"></span>
+                        </div>
+                        <div class="summary-item">
+                            <span style="color: #64748b;">Tax (5%):</span>
+                            <span id="invTax" style="font-weight: 600; min-width: 80px; display: inline-block;"></span>
+                        </div>
+                        <div class="summary-item"
+                            style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 2px solid #f1f5f9;">
+                            <span style="font-weight: 800; font-size: 1.1rem;">Total:</span>
+                            <span id="invTotal"
+                                style="font-weight: 800; font-size: 1.1rem; color: var(--primary); min-width: 80px; display: inline-block;"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="thank-you">
+                    Thank you for your transaction with HotelCraft!
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem;">
+                <button class="btn-manage" style="background: transparent;" onclick="closeModal()">Close</button>
+                <button class="btn-approve" onclick="window.print()">
+                    <i data-lucide="printer" size="14"></i> Print Invoice
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function viewInvoice(btn) {
+            console.log('Viewing invoice for element:', btn);
+            try {
+                const data = btn.dataset;
+                if (!data || !data.id) {
+                    console.error('No data found on button');
+                    return;
+                }
+
+                document.getElementById('invId').innerText = data.id || 'N/A';
+                document.getElementById('invCustomer').innerText = data.customer || 'Guest';
+                document.getElementById('invDate').innerText = data.date || new Date().toLocaleDateString();
+                document.getElementById('invPayment').innerText = data.payment || 'Credit Card';
+                document.getElementById('invStatus').innerText = data.status || 'Approved';
+
+                const itemsBody = document.getElementById('invItems');
+                itemsBody.innerHTML = '';
+
+                const itemsStr = data.items || '';
+                const items = itemsStr ? itemsStr.split('|').map(s => {
+                    const parts = s.split(':');
+                    return {
+                        name: parts[0],
+                        qty: parseInt(parts[1]),
+                        price: parseFloat(parts[2]),
+                        subtotal: parseFloat(parts[3])
+                    };
+                }) : [];
+
+                const itemsTotal = items.reduce((acc, item) => acc + item.subtotal, 0);
+                const total = parseFloat(data.total) || 0;
+                const discount = parseFloat(data.discount) || 0;
+                const subtotal = itemsTotal || total; // Fallback for old bookings
+                const tax = (subtotal - discount) * 0.05;
+
+                if (items.length > 0) {
+                    items.forEach(item => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${item.name}</td>
+                            <td align="center">${item.qty}</td>
+                            <td align="right">$${item.price.toFixed(2)}</td>
+                            <td align="right">$${item.subtotal.toFixed(2)}</td>
+                        `;
+                        itemsBody.appendChild(row);
+                    });
+                } else {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>Booking Services & Items</td>
+                        <td align="center">1</td>
+                        <td align="right">$${subtotal.toFixed(2)}</td>
+                        <td align="right">$${subtotal.toFixed(2)}</td>
+                    `;
+                    itemsBody.appendChild(row);
+                }
+
+                document.getElementById('invSubtotal').innerText = '$' + subtotal.toFixed(2);
+                document.getElementById('invDiscount').innerText = '-$' + discount.toFixed(2);
+                document.getElementById('invTax').innerText = '$' + tax.toFixed(2);
+                document.getElementById('invTotal').innerText = '$' + total.toFixed(2);
+
+                document.getElementById('invoiceModal').style.display = 'flex';
+                if (window.lucide) lucide.createIcons();
+            } catch (error) {
+                console.error('Error in viewInvoice (attribute-version):', error);
+                alert('Could not generate invoice UI. Error: ' + error.message);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('invoiceModal').style.display = 'none';
+        }
+
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
