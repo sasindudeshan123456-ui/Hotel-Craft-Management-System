@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Send System Alert - HotelCraft</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2.5rem;
+            overflow-y: auto;
+            background: var(--mesh-gradient);
+            background-size: 200% 200%;
+            animation: meshMove 15s ease infinite;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        @keyframes meshMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .form-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            padding: 2.5rem;
+            border-radius: 2rem;
+            border: 1px solid var(--border-sidebar);
+            width: 100%;
+            max-width: 600px;
+            box-shadow: var(--card-shadow);
+            margin-top: 2rem;
+        }
+
+        .form-header {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .form-header h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin: 0;
+            background: var(--grad-analytics);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-sidebar);
+            border-radius: 1rem;
+            color: white;
+            font-family: inherit;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            background: rgba(15, 23, 42, 0.8);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        select.form-control {
+            appearance: none;
+            cursor: pointer;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 1.25rem;
+            background: var(--grad-analytics);
+            border: none;
+            border-radius: 1.25rem;
+            color: white;
+            font-weight: 800;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+            box-shadow: 0 15px 30px rgba(16, 185, 129, 0.4);
+        }
+
+        .type-preview {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .type-dot {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .type-dot.active {
+            border-color: white;
+            transform: scale(1.2);
+            box-shadow: 0 0 15px rgba(255,255,255,0.3);
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{fragments/sidebar :: sidebar('notifications')}"></div>
+
+    <div class="main-content">
+        <div th:replace="~{fragments/nav_tabs :: nav_tabs('notifications')}"></div>
+
+        <div class="form-card">
+            <div class="form-header">
+                <i data-lucide="bell-ring" style="width: 48px; height: 48px; color: var(--accent-primary); margin-bottom: 1rem;"></i>
+                <h2>Broadcast System Alert</h2>
+                <p style="color: var(--text-muted); font-weight: 500;">Send a notification to all system users</p>
+            </div>
+
+            <form th:action="@{/admin/notifications/new}" method="POST" th:object="${notification}">
+                <div class="form-group">
+                    <label for="title">Alert Title</label>
+                    <input type="text" id="title" th:field="*{title}" class="form-control" placeholder="e.g., System Maintenance" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="message">Message Details</label>
+                    <textarea id="message" th:field="*{message}" class="form-control" rows="4" placeholder="Type your message here..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Priority / Type</label>
+                    <select th:field="*{type}" class="form-control" id="typeSelect">
+                        <option value="BLUE">Information (Blue)</option>
+                        <option value="GREEN">Success (Green)</option>
+                        <option value="AMBER">Warning (Amber)</option>
+                        <option value="RED">Critical (Red)</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-submit">Send Broadcast</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
