@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supplier Portal - HotelCraft</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            transition: all 0.3s;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2.5rem;
+            overflow-y: auto;
+            background: var(--mesh-gradient);
+            background-size: 200% 200%;
+            animation: meshMove 15s ease infinite;
+        }
+
+        @keyframes meshMove {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 3rem;
+        }
+
+        .header h2 {
+            font-size: 2.25rem;
+            font-weight: 800;
+            margin: 0;
+            background: var(--grad-inventory);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 1.25rem;
+            border: 1px solid var(--border-sidebar);
+            transition: all 0.3s;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+        }
+
+        .portal-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 2rem;
+            border: 1px solid var(--border-sidebar);
+            padding: 2.5rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .card-header {
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -0.02em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 1.25rem 1.5rem;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            border-bottom: 2px solid var(--border-sidebar);
+        }
+
+        td {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-sidebar);
+            font-size: 1rem;
+            color: var(--text-main);
+            font-weight: 500;
+        }
+
+        tr {
+            transition: all 0.2s;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .status-pill {
+            padding: 0.25rem 0.6rem;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .status-new {
+            background: rgba(99, 102, 241, 0.1);
+            color: #818cf8;
+        }
+
+        .status-processing {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+
+        .status-delivered {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+        
+        .status-requested {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .action-link {
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #10b981;
+        }
+
+        .notifications-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .notification-item {
+            display: flex;
+            gap: 1rem;
+            position: relative;
+        }
+
+        .notification-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-top: 5px;
+            flex-shrink: 0;
+        }
+
+        .dot-blue {
+            background: #6366f1;
+        }
+
+        .dot-green {
+            background: #10b981;
+        }
+
+        .dot-amber {
+            background: #f59e0b;
+        }
+
+        .notification-content p {
+            margin: 0;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            font-weight: 600;
+        }
+
+        .notification-content span {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .note-icon {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-top: 6px;
+            flex-shrink: 0;
+        }
+
+        .note-blue .note-icon { background: #6366f1; box-shadow: 0 0 8px rgba(99, 102, 241, 0.5); }
+        .note-green .note-icon { background: #10b981; box-shadow: 0 0 8px rgba(16, 185, 129, 0.5); }
+        .note-amber .note-icon { background: #f59e0b; box-shadow: 0 0 8px rgba(245, 158, 11, 0.5); }
+
+        .note-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 2px; }
+        .note-desc { font-size: 0.8rem; color: var(--text-muted); }
+
+        .inventory-section {
+            margin-top: 3rem;
+            background: var(--card-bg);
+            border-radius: 1.5rem;
+            border: 1px solid var(--border-sidebar);
+            padding: 2rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .section-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 800;
+        }
+
+        .price-cell {
+            color: var(--accent-primary);
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 22px;
+        }
+
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(255,255,255,0.1);
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px; width: 16px;
+            left: 3px; bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background: var(--grad-inventory); }
+        input:checked + .slider:before { transform: translateX(22px); }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{fragments/sidebar :: sidebar('supplier-portal')}"></div>
+
+    <div class="main-content">
+        <div th:replace="~{fragments/supplier_tabs :: supplier_tabs('portal')}"></div>
+        <div th:if="${success}"
+            style="padding: 1rem 1.5rem; border-radius: 1rem; margin-bottom: 2rem; background: rgba(34, 197, 94, 0.1); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.2); display: flex; align-items: center; gap: 0.75rem;">
+            <i data-lucide="check-circle"></i>
+            <span th:text="${success}"></span>
+        </div>
+        <div th:if="${error}"
+            style="padding: 1rem 1.5rem; border-radius: 1rem; margin-bottom: 2rem; background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.2); display: flex; align-items: center; gap: 0.75rem;">
+            <i data-lucide="alert-circle"></i>
+            <span th:text="${error}"></span>
+        </div>
+        <div class="header">
+            <div>
+                <h2>Supplier Portal</h2>
+                <div style="color: var(--text-muted); margin-top: 0.5rem;">Manage orders, pricing and notifications
+                </div>
+            </div>
+            <div class="header-actions" style="display: flex; gap: 1rem; align-items: center;">
+                <a th:href="@{/suppliers/profile}" class="btn-primary"
+                    style="display: inline-block; text-decoration: none; padding: 0.75rem 1.5rem; border-radius: 0.75rem; border: none; background: rgba(255, 255, 255, 0.1); color: white; font-weight: 700; cursor: pointer;">Settings</a>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">New Orders</div>
+                <div class="stat-value" th:text="${newOrders}">3</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Delivered</div>
+                <div class="stat-value" th:text="${deliveredCount}">1</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Active Products</div>
+                <div class="stat-value" style="color: #6366f1;" th:text="${activeProducts}">7</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Unread Alerts</div>
+                <div class="stat-value" style="color: #ef4444;" th:text="${unreadAlerts}">3</div>
+            </div>
+        </div>
+
+        <div class="portal-grid">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Incoming orders</h3>
+                    <span
+                        style="font-size: 0.75rem; color: #818cf8; background: rgba(99, 102, 241, 0.1); padding: 0.25rem 0.6rem; border-radius: 999px; font-weight: 700;"
+                        th:text="${newOrders} + ' new'">3 new</span>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order</th>
+                            <th>Item</th>
+                            <th>Qty</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Standard flow -->
+                        <tr th:each="order : ${orders}">
+                            <td class="contract-title" th:text="${order.id}">ORD-841</td>
+                            <td th:text="${order.item}">Fresh Tomatoes</td>
+                            <td th:text="${order.quantity}">25 kg</td>
+                            <td>
+                                <span class="status-pill" 
+                                      th:classappend="${order.status == 'REQUESTED' ? 'status-requested' : 'status-' + order.status.toLowerCase()}"
+                                      th:text="${order.status}">New</span>
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <!-- Requested flow -->
+                                    <form th:if="${order.status == 'REQUESTED'}" th:action="@{'/suppliers/orders/' + ${order.id} + '/accept'}" method="post">
+                                        <button type="submit" class="action-link" style="color: #10b981; background: none; border: none; cursor: pointer; font-weight: 700;">Accept</button>
+                                    </form>
+                                    <form th:if="${order.status == 'REQUESTED'}" th:action="@{'/suppliers/orders/' + ${order.id} + '/reject'}" method="post">
+                                        <button type="submit" class="action-link" style="color: #ef4444; background: none; border: none; cursor: pointer; font-weight: 700;">Reject</button>
+                                    </form>
+
+                                    <!-- Standard flow -->
+                                    <form th:if="${order.status == 'NEW'}"
+                                        th:action="@{'/suppliers/orders/' + ${order.id} + '/status'}" method="post">
+                                        <input type="hidden" name="status" value="PROCESSING">
+                                        <button type="submit" class="action-link"
+                                            style="background: none; border: none; padding: 0; cursor: pointer; color: #10b981; font-family: inherit;">Process</button>
+                                    </form>
+                                    <form th:if="${order.status == 'PROCESSING'}"
+                                        th:action="@{'/suppliers/orders/' + ${order.id} + '/status'}" method="post">
+                                        <input type="hidden" name="status" value="DELIVERED">
+                                        <button type="submit" class="action-link"
+                                            style="background: none; border: none; padding: 0; cursor: pointer; color: #6366f1; font-family: inherit;">Ship</button>
+                                    </form>
+                                    <span class="action-link" style="color: var(--text-muted);"
+                                        th:if="${order.status == 'DELIVERED'}">Done</span>
+                                    <span class="action-link" style="color: #ef4444;"
+                                        th:if="${order.status == 'REJECTED'}">Declined</span>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Approved Marketplace Deals (to be Activated) -->
+                        <tr th:each="deal : ${approvedDeals}" style="background: rgba(16, 185, 129, 0.05);">
+                            <td class="contract-title">
+                                <div th:text="'DEAL-' + ${deal.id}">DEAL-1</div>
+                                <div style="font-size: 0.65rem; color: #10b981; font-weight: 700;">APPROVED QUOTE</div>
+                            </td>
+                            <td th:text="${deal.material.name}">Material</td>
+                            <td th:text="${deal.approvedQuantity != null ? deal.approvedQuantity : deal.offeredQuantity} + ' units'">100 units</td>
+                            <td>
+                                <span class="status-pill status-delivered" style="background: rgba(16, 185, 129, 0.2); color: #10b981;">Ready</span>
+                            </td>
+                            <td>
+                                <div sec:authorize="hasRole('ROLE_ADMIN')">
+                                    <form th:action="@{'/suppliers/supply-request/' + ${deal.id} + '/activate'}" method="post">
+                                        <button type="submit" class="action-link" 
+                                                style="background: #10b981; color: white; padding: 0.4rem 0.8rem; border-radius: 0.5rem; border: none; cursor: pointer; font-weight: 700; font-family: inherit;">
+                                            Activate
+                                        </button>
+                                    </form>
+                                </div>
+                                <div sec:authorize="!hasRole('ROLE_ADMIN')">
+                                    <span style="font-size: 0.8rem; color: var(--text-muted);">Admin will activate</span>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            
+        </div>
+
+
+    </div>
+    </div>
+
+    <script th:inline="javascript">
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

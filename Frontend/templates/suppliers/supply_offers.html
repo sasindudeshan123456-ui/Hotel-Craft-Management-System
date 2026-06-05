@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supplier Marketplace - HotelCraft</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2.5rem;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        .hero-section {
+            background: var(--nav-item-hover-bg);
+            border: 1px solid var(--border-sidebar);
+            border-radius: 2rem;
+            padding: 3rem;
+            margin-bottom: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin: 0;
+            letter-spacing: -0.02em;
+            background: linear-gradient(to right, #a5b4fc, #e879f9);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-section p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin-top: 1rem;
+        }
+
+        .marketplace-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .material-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-sidebar);
+            border-radius: 2rem;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .material-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.1);
+        }
+
+        .material-image {
+            height: 200px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .material-image::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(to top, rgba(8, 13, 26, 0.8), transparent);
+        }
+
+        .category-tag {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 0.4rem 1rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 2;
+        }
+
+        .material-info {
+            padding: 2rem;
+            flex: 1;
+        }
+
+        .material-info h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .stock-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .offer-form {
+            margin-top: 1.5rem;
+            display: grid;
+            gap: 1rem;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            width: 16px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 0.85rem 1rem 0.85rem 2.75rem;
+            background: var(--nav-item-hover-bg);
+            border: 1px solid var(--border-sidebar);
+            border-radius: 1rem;
+            color: var(--text-main);
+            font-family: inherit;
+            box-sizing: border-box;
+            transition: all 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .btn-submit-offer {
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        .btn-submit-offer:hover {
+            background: #4f46e5;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        /* History Table Section */
+        .history-section {
+            margin-top: 5rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .history-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-sidebar);
+            border-radius: 2rem;
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 1.5rem 1rem;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border-bottom: 1px solid var(--border-sidebar);
+        }
+
+        td {
+            padding: 1.5rem 1rem;
+            border-bottom: 1px solid var(--border-sidebar);
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .status-pending { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2); }
+        .status-approved { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
+        .status-rejected { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
+        .status-received { background: rgba(99, 102, 241, 0.1); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.2); }
+
+        .btn-action {
+            background: var(--nav-item-hover-bg);
+            color: var(--text-main);
+            border: 1px solid var(--border-sidebar);
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn-action:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .alert {
+            padding: 1.25rem 2rem;
+            border-radius: 1.5rem;
+            margin-bottom: 2.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            background: rgba(16, 185, 129, 0.1);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            animation: fadeInDown 0.5s ease-out;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{fragments/sidebar :: sidebar('suppliers')}"></div>
+
+    <div class="main-content">
+        <div th:replace="~{fragments/supplier_tabs :: supplier_tabs('supply-offers')}"></div>
+
+        <div th:if="${success}" class="alert">
+            <i data-lucide="check-circle"></i>
+            <span th:text="${success}"></span>
+        </div>
+
+        <div class="hero-section">
+            <h1>Supplier Marketplace</h1>
+            <p>Welcome to the HotelCraft partner portal. Browse our current raw material requirements and submit your supply proposals below.</p>
+        </div>
+
+        <div class="section-header">
+            <h2>Active Requirements</h2>
+            <div style="color: var(--text-muted);">Select a material to submit a quote</div>
+        </div>
+
+        <div class="marketplace-grid" th:if="${not #lists.isEmpty(materials)}">
+            <div class="material-card" th:each="material : ${materials}">
+                <div class="category-tag" th:text="${material.category}">Raw Material</div>
+                <div class="material-image" style="background: rgba(255, 255, 255, 0.03); display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="package" style="width: 48px; height: 48px; color: rgba(255, 255, 255, 0.2);"></i>
+                </div>
+                <div class="material-info">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <h3 th:text="${material.name}">Material Name</h3>
+                        <span th:if="${material.quantity == 0}" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; padding: 0.25rem 0.6rem; border-radius: 0.5rem; font-size: 0.7rem; font-weight: 800;">URGENT NEED</span>
+                    </div>
+                    <div class="stock-status">
+                        <i data-lucide="info" style="width: 14px;"></i>
+                        Current Hotel Stock: <span th:text="${material.quantity}" style="font-weight: 700; color: white;">0</span> units
+                    </div>
+
+                    <form sec:authorize="hasRole('ROLE_SUPPLIER')" th:action="@{/suppliers/supply-request/new}" method="post" class="offer-form">
+                        <input type="hidden" name="materialId" th:value="${material.id}">
+                        <input type="hidden" name="materialName" th:value="${material.name}">
+                        <div class="input-group">
+                            <i data-lucide="package"></i>
+                            <input type="number" name="quantity" placeholder="Offer Quantity" required min="1">
+                        </div>
+                        <div class="input-group">
+                            <i data-lucide="dollar-sign"></i>
+                            <input type="number" step="0.01" name="price" placeholder="Price per Unit" required min="0.01">
+                        </div>
+                        <button type="submit" class="btn-submit-offer">
+                            <i data-lucide="send"></i>
+                            Submit Quote
+                        </button>
+                    </form>
+                    <div sec:authorize="hasRole('ROLE_ADMIN')" style="margin-top: 1.5rem; text-align: center; color: var(--text-muted); font-size: 0.9rem; padding: 1rem; border: 1px dashed var(--border); border-radius: 1rem;">
+                        <i data-lucide="user-cog" style="width: 16px; vertical-align: middle; margin-right: 4px;"></i>
+                        Admin Mode: Quotes are for Suppliers
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(materials)}" class="history-card" style="text-align: center; padding: 4rem;">
+            <i data-lucide="package-search" style="width: 48px; height: 48px; color: var(--text-muted); margin-bottom: 1rem;"></i>
+            <h3>No Active Requirements</h3>
+            <p style="color: var(--text-muted);">The hotel currently has no raw materials defined. Check back later!</p>
+        </div>
+
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

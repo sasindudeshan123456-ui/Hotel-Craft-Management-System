@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Become a Supplier - HotelCraft</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2.5rem;
+            overflow-y: auto;
+            background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.1), transparent),
+                        radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.1), transparent);
+        }
+
+        .welcome-card {
+            background: var(--card-bg);
+            border-radius: 2rem;
+            padding: 4rem;
+            border: 1px solid var(--border-sidebar);
+            max-width: 800px;
+            margin: 4rem auto;
+            text-align: center;
+            box-shadow: var(--card-shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        .icon-box {
+            width: 80px;
+            height: 80px;
+            background: var(--grad-analytics);
+            border-radius: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            color: white;
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            background: var(--grad-analytics);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 3rem;
+        }
+
+        .benefits {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin-bottom: 4rem;
+            text-align: left;
+        }
+
+        .benefit-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border: 1px solid var(--border-sidebar);
+        }
+
+        .benefit-item i {
+            color: var(--accent-primary);
+            margin-bottom: 1rem;
+        }
+
+        .benefit-item h4 {
+            margin: 0 0 0.5rem 0;
+            font-weight: 700;
+        }
+
+        .benefit-item span {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .btn-register {
+            padding: 1rem 2.5rem;
+            background: var(--grad-analytics);
+            color: white;
+            text-decoration: none;
+            border-radius: 1rem;
+            font-weight: 700;
+            font-size: 1.1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.3s;
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-register:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(16, 185, 129, 0.6);
+        }
+
+        /* Alerts */
+        .alert-container {
+            max-width: 800px;
+            margin: 0 auto 2rem;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .alert-glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            border-radius: 1.25rem;
+            padding: 1.25rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        .error .alert-glass {
+            border-left: 5px solid #ef4444;
+            color: #ef4444;
+            font-weight: 600;
+        }
+
+        .success .alert-glass {
+            border-left: 5px solid #10b981;
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        .alert-glass i {
+            width: 24px;
+            height: 24px;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{fragments/sidebar :: sidebar('suppliers')}"></div>
+
+    <div class="main-content">
+        <!-- Alerts -->
+        <div th:if="${error}" class="alert-container error">
+            <div class="alert-glass">
+                <i data-lucide="alert-circle"></i>
+                <span th:text="${error}"></span>
+            </div>
+        </div>
+        <div th:if="${success}" class="alert-container success">
+            <div class="alert-glass">
+                <i data-lucide="check-circle"></i>
+                <span th:text="${success}"></span>
+            </div>
+        </div>
+
+        <div class="welcome-card">
+            <div class="icon-box">
+                <i data-lucide="truck" size="40"></i>
+            </div>
+            <h2>Partner with HotelCraft</h2>
+            <p>Join our exclusive network of premium suppliers and grow your business with our seamless management platform.</p>
+
+            <div class="benefits">
+                <div class="benefit-item">
+                    <i data-lucide="zap"></i>
+                    <h4>Instant Orders</h4>
+                    <span>Receive and manage orders in real-time.</span>
+                </div>
+                <div class="benefit-item">
+                    <i data-lucide="shield-check"></i>
+                    <h4>Secure Portal</h4>
+                    <span>Manage contracts and payments safely.</span>
+                </div>
+                <div class="benefit-item">
+                    <i data-lucide="bar-chart"></i>
+                    <h4>Analytics</h4>
+                    <span>Track your performance and ratings.</span>
+                </div>
+            </div>
+
+            <a th:href="@{/suppliers/new}" class="btn-register">
+                Register as a Supplier
+                <i data-lucide="arrow-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

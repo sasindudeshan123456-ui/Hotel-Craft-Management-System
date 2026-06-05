@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supplier Contracts - HotelCraft</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            transition: all 0.3s;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2.5rem;
+            overflow-y: auto;
+            background: var(--mesh-gradient);
+            background-size: 200% 200%;
+            animation: meshMove 15s ease infinite;
+        }
+
+        @keyframes meshMove {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 3rem;
+        }
+
+        .header h2 {
+            font-size: 2.25rem;
+            font-weight: 800;
+            margin: 0;
+            background: var(--grad-profile);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 1.25rem;
+            border: 1px solid var(--border-sidebar);
+            transition: all 0.3s;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+        }
+
+        .contracts-card {
+            background: var(--card-bg);
+            border-radius: 1.5rem;
+            border: 1px solid var(--border-sidebar);
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+        }
+
+        .card-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border-sidebar);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 1.25rem 2rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            background: var(--nav-item-hover-bg);
+            font-weight: 700;
+        }
+
+        td {
+            padding: 1.25rem 2rem;
+            border-bottom: 1px solid var(--border-sidebar);
+            font-size: 0.9rem;
+            color: var(--text-main);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .contract-title {
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .status-badge {
+            padding: 0.35rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: inline-block;
+        }
+
+        .status-active {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .status-pending {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .status-approved {
+            background: rgba(99, 102, 241, 0.1);
+            color: #818cf8;
+            border: 1px solid rgba(111, 102, 241, 0.2);
+        }
+
+        .status-expired {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .action-link {
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .action-view {
+            color: var(--accent-primary);
+        }
+
+        .action-approve {
+            color: #10b981;
+        }
+
+        .action-reject {
+            color: #ef4444;
+        }
+
+        .action-activate {
+            color: #818cf8;
+        }
+
+        .action-link:hover {
+            opacity: 0.8;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{fragments/sidebar :: sidebar('contracts')}"></div>
+
+    <div class="main-content">
+        <div th:replace="~{fragments/supplier_tabs :: supplier_tabs('contracts')}"></div>
+        <div th:if="${success}"
+            style="padding: 1rem 1.5rem; border-radius: 1rem; margin-bottom: 2rem; background: rgba(34, 197, 94, 0.1); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.2); display: flex; align-items: center; gap: 0.75rem;">
+            <i data-lucide="check-circle"></i>
+            <span th:text="${success}"></span>
+        </div>
+        <div class="header">
+            <div>
+                <h2>Supplier Contracts</h2>
+                <div style="color: var(--text-muted); margin-top: 0.5rem;">Review and approve supplier agreements</div>
+            </div>
+
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Pending</div>
+                <div class="stat-value" style="color: #f59e0b;" th:text="${pendingCount}">2</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Approved</div>
+                <div class="stat-value" style="color: #6366f1;" th:text="${approvedCount}">1</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Active</div>
+                <div class="stat-value" style="color: #10b981;" th:text="${activeCount}">2</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Expiring Soon</div>
+                <div class="stat-value" style="color: #ef4444;" th:text="${expiringCount}">1</div>
+            </div>
+        </div>
+
+        <div class="contracts-card">
+            <div class="card-header">
+                <h3>All contracts</h3>
+                <span
+                    style="font-size: 0.75rem; color: var(--text-muted); background: var(--nav-item-hover-bg); padding: 0.25rem 0.6rem; border-radius: 999px; font-weight: 600;"
+                    th:text="${contracts.size()} + ' total'">5 total</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Contract</th>
+                        <th>Supplier</th>
+                        <th>Value</th>
+                        <th>Expires</th>
+                        <th>Status</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Existing Contracts -->
+                    <tr th:each="contract : ${contracts}">
+                        <td class="contract-title">
+                            <div th:text="${contract.title}">Annual Supply Agreement</div>
+                            <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 400;">Formal Agreement</div>
+                        </td>
+                        <td th:text="${contract.supplier.name}">Fresh Farms Ltd.</td>
+                        <td th:text="'$' + ${#numbers.formatDecimal(contract.value, 0, 'COMMA', 0, 'POINT')}">$85,000
+                        </td>
+                        <td th:text="${#temporals.format(contract.expiresAt, 'MMM dd, yyyy')}">Dec 31, 2024</td>
+                        <td>
+                            <span class="status-badge" th:classappend="|status-${contract.status.toLowerCase()}|"
+                                th:text="${contract.status}">Active</span>
+                        </td>
+                        <td class="actions">
+                            <a href="javascript:void(0)" class="action-link" 
+                               th:if="${contract.status != 'PENDING'}"
+                               th:attr="data-title=${contract.title}, data-supplier=${contract.supplier.name}, data-value=${contract.value}, data-status=${contract.status}, data-expiry=${contract.expiresAt != null ? #temporals.format(contract.expiresAt, 'MMM dd, yyyy') : 'N/A'}"
+                               onclick="showContractModal(this.getAttribute('data-title'), this.getAttribute('data-supplier'), this.getAttribute('data-value'), this.getAttribute('data-status'), this.getAttribute('data-expiry'))"
+                               style="text-decoration: none; font-weight: 700; font-size: 0.85rem; color: var(--accent-primary); cursor: pointer;">View</a>
+                            
+                            <form th:if="${contract.status == 'PENDING'}" th:action="@{'/suppliers/contracts/' + ${contract.id} + '/status'}" method="post" style="display:inline;">
+                                <input type="hidden" name="status" value="APPROVED">
+                                <button type="submit" class="action-link action-approve" style="background:none; border:none; padding:0; cursor:pointer; font-family:inherit;">Approve</button>
+                            </form>
+                            
+                            <form th:if="${contract.status == 'PENDING'}" th:action="@{'/suppliers/contracts/' + ${contract.id} + '/status'}" method="post" style="display:inline;">
+                                <input type="hidden" name="status" value="EXPIRED">
+                                <button type="submit" class="action-link action-reject" style="background:none; border:none; padding:0; cursor:pointer; font-family:inherit;">Reject</button>
+                            </form>
+ 
+                            <form th:if="${contract.status == 'APPROVED'}" th:action="@{'/suppliers/contracts/' + ${contract.id} + '/status'}" method="post" style="display:inline;">
+                                <input type="hidden" name="status" value="ACTIVE">
+                                <button type="submit" class="action-link action-activate" style="background:none; border:none; padding:0; cursor:pointer; font-family:inherit;">Activate</button>
+                            </form>
+                        </td>
+                    </tr>
+
+                    <!-- Pending Supply Offers (Proposals) -->
+                    <tr th:each="request : ${pendingRequests}" style="background: rgba(99, 102, 241, 0.03);">
+                        <td class="contract-title">
+                            <div th:text="'Offer: ' + ${request.material.name}">Supply Offer</div>
+                            <div style="font-size: 0.7rem; color: #818cf8; font-weight: 700; text-transform: uppercase;">New Proposal</div>
+                        </td>
+                        <td th:text="${request.supplier.name}">Supplier Name</td>
+                        <td>
+                            <div th:text="'$' + ${#numbers.formatDecimal(request.pricePerUnit * request.offeredQuantity, 0, 'COMMA', 0, 'POINT')}">Value</div>
+                            <div style="font-size: 0.7rem; color: var(--text-muted);" th:text="${request.offeredQuantity} + ' units @ $' + ${request.pricePerUnit}">Details</div>
+                        </td>
+                        <td style="color: var(--text-muted);">Decision Pending</td>
+                        <td>
+                            <span class="status-badge status-pending">PROPOSAL</span>
+                        </td>
+                        <td class="actions">
+                            <div sec:authorize="hasRole('ROLE_ADMIN')" style="display: flex; gap: 1rem; justify-content: flex-end;">
+                                <form th:action="@{'/suppliers/supply-request/' + ${request.id} + '/approve'}" method="post" style="display: flex; gap: 0.5rem; align-items: center;">
+                                    <input type="hidden" name="approvedQuantity" th:value="${request.offeredQuantity}">
+                                    <button type="submit" class="action-link action-approve" style="background:none; border:none; padding:0; cursor:pointer; font-family:inherit;">Approve</button>
+                                </form>
+                                <form th:action="@{'/suppliers/supply-request/' + ${request.id} + '/reject'}" method="post">
+                                    <button type="submit" class="action-link action-reject" style="background:none; border:none; padding:0; cursor:pointer; font-family:inherit;">Reject</button>
+                                </form>
+                            </div>
+                            <div sec:authorize="!hasRole('ROLE_ADMIN')" style="text-align: right; color: var(--text-muted); font-size: 0.8rem;">
+                                Waiting for Admin
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Contract Detail Modal -->
+    <div id="contractModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); backdrop-filter:blur(8px); z-index:2000; align-items:center; justify-content:center; animation: fadeIn 0.3s ease;">
+        <div style="background: var(--bg-sidebar); border: 1px solid var(--border-sidebar); border-radius: 2rem; width: 500px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+            <div style="padding: 2rem; background: var(--grad-profile); color: white;">
+                <h3 id="modalContractTitle" style="margin: 0; font-size: 1.5rem; font-weight: 800;">Contract Details</h3>
+                <p id="modalContractSupplier" style="margin: 0.5rem 0 0 0; opacity: 0.8; font-weight: 600;">Supplier Name</p>
+            </div>
+            <div style="padding: 2rem; display: grid; gap: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 1rem; border-bottom: 1px solid var(--border-sidebar);">
+                    <span style="color: var(--text-muted); font-weight: 600; font-size: 0.9rem;">Total Value</span>
+                    <span id="modalContractValue" style="font-size: 1.25rem; font-weight: 800; color: var(--accent-primary);">$0.00</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 1rem; border-bottom: 1px solid var(--border-sidebar);">
+                    <span style="color: var(--text-muted); font-weight: 600; font-size: 0.9rem;">Status</span>
+                    <span id="modalContractStatus" class="status-badge">ACTIVE</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 1rem; border-bottom: 1px solid var(--border-sidebar);">
+                    <span style="color: var(--text-muted); font-weight: 600; font-size: 0.9rem;">Expires On</span>
+                    <span id="modalContractExpiry" style="font-weight: 700;">Dec 31, 2024</span>
+                </div>
+                <div style="margin-top: 1rem;">
+                    <button onclick="closeContractModal()" style="width: 100%; padding: 1rem; border-radius: 1rem; border: none; background: var(--nav-item-hover-bg); color: white; font-weight: 700; cursor: pointer; transition: all 0.3s;">Close View</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+
+    <script th:inline="javascript">
+        function showContractModal(title, supplier, value, status, expiry) {
+            document.getElementById('modalContractTitle').innerText = title;
+            document.getElementById('modalContractSupplier').innerText = supplier;
+            document.getElementById('modalContractValue').innerText = '$' + parseFloat(value).toLocaleString();
+            document.getElementById('modalContractStatus').innerText = status;
+            document.getElementById('modalContractStatus').className = 'status-badge status-' + status.toLowerCase();
+            document.getElementById('modalContractExpiry').innerText = expiry || 'N/A';
+            document.getElementById('contractModal').style.display = 'flex';
+        }
+
+        function closeContractModal() {
+            document.getElementById('contractModal').style.display = 'none';
+        }
+
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

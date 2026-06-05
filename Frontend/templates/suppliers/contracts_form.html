@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Contract - HotelCraft</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2.5rem;
+            overflow-y: auto;
+            background: var(--mesh-gradient);
+            background-size: 200% 200%;
+            animation: meshMove 15s ease infinite;
+        }
+
+        @keyframes meshMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .header {
+            margin-bottom: 3rem;
+        }
+
+        .header h2 {
+            font-size: 2.25rem;
+            font-weight: 800;
+            margin: 0;
+            background: var(--grad-profile);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .form-card {
+            background: var(--card-bg);
+            border-radius: 1.5rem;
+            border: 1px solid var(--border-sidebar);
+            padding: 2.5rem;
+            max-width: 600px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-sidebar);
+            border-radius: 0.75rem;
+            color: white;
+            font-family: inherit;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .btn-submit {
+            background: var(--grad-profile);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 1rem;
+            transition: all 0.3s;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3);
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{fragments/sidebar :: sidebar('contracts')}"></div>
+
+    <div class="main-content">
+        <div class="header">
+            <a th:href="@{/suppliers/contracts}" style="color: var(--accent-primary); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; font-weight: 600;">
+                <i data-lucide="arrow-left" size="18"></i>
+                Back to Contracts
+            </a>
+            <h2>New Contract</h2>
+        </div>
+
+        <div class="form-card">
+            <form th:action="@{/suppliers/contracts/new}" th:object="${contract}" method="post">
+                <div class="form-group">
+                    <label>Contract Title</label>
+                    <input type="text" th:field="*{title}" class="form-control" placeholder="e.g. Annual Supply 2024" required>
+                </div>
+                <div class="form-group">
+                    <label>Supplier</label>
+                    <select th:field="*{supplier}" class="form-control" required>
+                        <option value="">Select a supplier...</option>
+                        <option th:each="s : ${suppliers}" th:value="${s.id}" th:text="${s.name}"></option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Contract Value ($)</label>
+                    <input type="number" th:field="*{value}" class="form-control" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label>Expiration Date</label>
+                    <input type="date" th:field="*{expiresAt}" class="form-control" required>
+                </div>
+                <button type="submit" class="btn-submit">Upload & Send for Review</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

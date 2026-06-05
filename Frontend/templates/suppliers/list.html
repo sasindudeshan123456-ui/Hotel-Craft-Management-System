@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supplier Relationships - HotelCraft</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            transition: all 0.3s;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2.5rem;
+            overflow-y: auto;
+            background: var(--mesh-gradient);
+            background-size: 200% 200%;
+            animation: meshMove 15s ease infinite;
+        }
+
+        @keyframes meshMove {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 3rem;
+        }
+
+        .header h2 {
+            font-size: 2.25rem;
+            font-weight: 800;
+            margin: 0;
+            background: var(--grad-analytics);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 1.25rem;
+            border: 1px solid var(--border-sidebar);
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-primary);
+            box-shadow: var(--card-hover-shadow);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+        }
+
+        .suppliers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .supplier-card {
+            background: var(--card-bg);
+            border-radius: 1.5rem;
+            padding: 1.75rem;
+            border: 1px solid var(--border-sidebar);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .supplier-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--accent-primary);
+            box-shadow: var(--card-hover-shadow);
+        }
+
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .supplier-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .supplier-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: var(--nav-item-hover-bg);
+            color: var(--accent-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            border: 1px solid var(--border-sidebar);
+        }
+
+        .supplier-details h4 {
+            margin: 0;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .supplier-details p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .status-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .status-active {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .status-review {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .performance-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .perf-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .progress-container {
+            height: 6px;
+            background: var(--nav-item-hover-bg);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--grad-analytics);
+            border-radius: 999px;
+            transition: width 1s ease;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-sidebar);
+        }
+
+        .orders-count {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .rating {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .rating i {
+            color: #f59e0b;
+            width: 14px;
+            height: 14px;
+            fill: #f59e0b;
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{fragments/sidebar :: sidebar('suppliers')}"></div>
+
+    <div class="main-content">
+        <div th:replace="~{fragments/supplier_tabs :: supplier_tabs('suppliers')}"></div>
+        <div th:if="${success}"
+            style="padding: 1rem 1.5rem; border-radius: 1rem; margin-bottom: 2rem; background: rgba(34, 197, 94, 0.1); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.2); display: flex; align-items: center; gap: 0.75rem;">
+            <i data-lucide="check-circle"></i>
+            <span th:text="${success}"></span>
+        </div>
+        <div class="header">
+            <div>
+                <h2>Supplier Relationships</h2>
+                <div style="color: var(--text-muted); margin-top: 0.5rem;"
+                    th:text="${totalSuppliers} + ' suppliers — Connected'"></div>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total</div>
+                <div class="stat-value" th:text="${totalSuppliers}">6</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Active</div>
+                <div class="stat-value" style="color: #10b981;" th:text="${activeCount}">5</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Under Review</div>
+                <div class="stat-value" style="color: #f59e0b;" th:text="${reviewCount}">1</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Avg Rating</div>
+                <div class="stat-value" th:text="${avgRating}">4.4</div>
+            </div>
+        </div>
+
+
+
+        <div class="suppliers-grid">
+            <div th:each="supplier : ${suppliers}" class="supplier-card">
+                <div class="card-top">
+                    <div class="supplier-info">
+                        <div class="supplier-avatar" th:text="${supplier.initials}">FF</div>
+                        <div class="supplier-details">
+                            <h4 th:text="${supplier.name}">Fresh Farms Ltd.</h4>
+                            <p th:text="${supplier.category}">Produce</p>
+                        </div>
+                    </div>
+                    <span class="status-badge"
+                        th:classappend="${supplier.status == 'ACTIVE' ? 'status-active' : 'status-review'}"
+                        th:text="${supplier.status == 'ACTIVE' ? 'Active' : 'Review'}">Active</span>
+                </div>
+
+                <div class="performance-section">
+                    <div class="perf-label">
+                        <span>On time</span>
+                        <span th:text="${#numbers.formatPercent(supplier.onTimeRate, 1, 0)}">97%</span>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar" th:style="'width: ' + (${supplier.onTimeRate} * 100) + '%'"></div>
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <div class="orders-count" th:text="${supplier.orderCount} + ' orders'">142 orders</div>
+                    <div class="rating">
+                        <span th:text="${supplier.rating}">4.9</span>
+                        <i data-lucide="star"></i>
+                    </div>
+                </div>
+
+                <div class="card-actions" sec:authorize="hasRole('ADMIN')" style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem; padding-top: 1rem; border-top: 1px solid var(--border-sidebar);">
+                    <div style="display: flex; gap: 0.75rem;">
+                        <a th:href="@{/suppliers/{id}/edit(id=${supplier.id})}" 
+                            style="flex: 1; text-align: center; padding: 0.5rem; border-radius: 0.5rem; background: var(--nav-item-hover-bg); color: var(--text-main); text-decoration: none; font-size: 0.8rem; font-weight: 600; border: 1px solid var(--border-sidebar);">
+                            Edit Profile
+                        </a>
+                        <form th:action="@{/suppliers/{id}/delete(id=${supplier.id})}" method="POST" style="flex: 1;" onsubmit="return confirm('Delete this supplier and their user account?');">
+                            <button type="submit" 
+                                style="width: 100%; padding: 0.5rem; border-radius: 0.5rem; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); font-size: 0.8rem; font-weight: 600; cursor: pointer;">
+                                Delete
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <!-- Grant Access Action (Only for REVIEW status) -->
+                    <form th:if="${supplier.status == 'REVIEW'}" th:action="@{/suppliers/{id}/activate(id=${supplier.id})}" method="POST" style="width: 100%;">
+                        <button type="submit" 
+                            style="width: 100%; padding: 0.75rem; border-radius: 0.75rem; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; font-size: 0.85rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 0.75rem; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);">
+                            <i data-lucide="shield-check" style="width: 16px;"></i>
+                            Grant Supplier Access
+                        </button>
+                    </form>
+
+                    <!-- New Request Supply Action (Only for ACTIVE status) -->
+                    <button th:if="${supplier.status == 'ACTIVE'}" th:data-id="${supplier.id}" th:data-name="${supplier.name}"
+                        onclick="openRequestModal(this.getAttribute('data-id'), this.getAttribute('data-name'))"
+                        style="width: 100%; padding: 0.75rem; border-radius: 0.75rem; background: var(--grad-inventory); color: white; border: none; font-size: 0.85rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                        <i data-lucide="send" style="width: 16px;"></i>
+                        Request Supply
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Request Supply Modal -->
+    <div id="requestModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:1000; align-items:center; justify-content:center;">
+        <div class="card" style="width: 400px; background: var(--card-bg); padding: 2rem; border-radius: 1.5rem; border: 1px solid var(--border-sidebar);">
+            <h3 id="modalTitle" style="margin-top:0;">Request Supply</h3>
+            <form th:action="@{/suppliers/orders/request}" method="post" id="requestForm">
+                <input type="hidden" name="supplierId" id="modalSupplierId">
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display:block; font-size:0.8rem; margin-bottom:0.5rem; color:var(--text-muted);">Item Name</label>
+                    <input type="text" name="item" required style="width:100%; padding:0.75rem; background:rgba(255,255,255,0.05); border:1px solid var(--border-sidebar); border-radius:0.75rem; color:white; box-sizing:border-box;">
+                </div>
+                <div style="margin-bottom: 2rem;">
+                    <label style="display:block; font-size:0.8rem; margin-bottom:0.5rem; color:var(--text-muted);">Quantity (e.g. 100 units, 50 kg)</label>
+                    <input type="text" name="quantity" required style="width:100%; padding:0.75rem; background:rgba(255,255,255,0.05); border:1px solid var(--border-sidebar); border-radius:0.75rem; color:white; box-sizing:border-box;">
+                </div>
+                <div style="display:flex; gap:1rem;">
+                    <button type="button" onclick="closeModal()" style="flex:1; padding:0.75rem; border-radius:0.75rem; border:1px solid var(--border-sidebar); background:none; color:white; cursor:pointer;">Cancel</button>
+                    <button type="submit" style="flex:1; padding:0.75rem; border-radius:0.75rem; border:none; background:var(--grad-inventory); color:white; font-weight:700; cursor:pointer;">Send Request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        lucide.createIcons();
+
+        function openRequestModal(id, name) {
+            document.getElementById('modalSupplierId').value = id;
+            document.getElementById('modalTitle').innerText = 'Request Supply from ' + name;
+            document.getElementById('requestModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('requestModal').style.display = 'none';
+        }
+    </script>
+</body>
+
+</html>

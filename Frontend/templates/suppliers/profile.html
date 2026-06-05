@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - HotelCraft</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            transition: all 0.3s;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2.5rem;
+            overflow-y: auto;
+            background: var(--mesh-gradient);
+            background-size: 200% 200%;
+            animation: meshMove 15s ease infinite;
+        }
+
+        @keyframes meshMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 3rem;
+        }
+
+        .header h2 {
+            font-size: 2.25rem;
+            font-weight: 800;
+            margin: 0;
+            background: var(--grad-users);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
+        .profile-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 2rem;
+            border: 1px solid var(--border-sidebar);
+            padding: 3rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border-sidebar);
+        }
+
+        .avatar-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 2.5rem;
+            background: var(--grad-users);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: white;
+            box-shadow: 0 10px 20px rgba(236, 72, 153, 0.3);
+        }
+
+        .profile-info h3 {
+            margin: 0;
+            font-size: 1.75rem;
+            font-weight: 800;
+        }
+
+        .profile-info p {
+            margin: 0.5rem 0 0;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .form-control {
+            width: 100%;
+            background: var(--nav-item-hover-bg);
+            border: 1px solid var(--border-sidebar);
+            border-radius: 1rem;
+            padding: 1rem 1.25rem;
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s;
+            box-sizing: border-box;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-secondary);
+            background: var(--nav-item-hover-bg);
+            box-shadow: 0 0 0 4px var(--primary-glow);
+        }
+
+        .form-control:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-save {
+            background: var(--grad-users);
+            color: white;
+            border: none;
+            padding: 1rem 2.5rem;
+            border-radius: 1.25rem;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            box-shadow: 0 10px 20px rgba(236, 72, 153, 0.2);
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(236, 72, 153, 0.4);
+        }
+
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 1.25rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-weight: 600;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{fragments/sidebar :: sidebar('supplier-portal')}"></div>
+
+    <div class="main-content">
+        <div th:replace="~{fragments/supplier_tabs :: supplier_tabs('supplier-profile')}"></div>
+
+        <div class="header">
+            <h2>Account Settings</h2>
+        </div>
+
+        <div class="profile-container">
+            <div th:if="${success}" class="alert alert-success">
+                <i data-lucide="check-circle"></i>
+                <span th:text="${success}"></span>
+            </div>
+
+            <div th:if="${error}" class="alert alert-danger" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2);">
+                <i data-lucide="alert-circle"></i>
+                <span th:text="${error}"></span>
+            </div>
+
+            <div class="card">
+                <div class="profile-header">
+                    <div class="avatar-circle" th:text="${supplier.initials}">JS</div>
+                    <div class="profile-info">
+                        <h3 th:text="${supplier.name}">Supplier Name</h3>
+                        <p th:text="${supplier.category}">Category</p>
+                    </div>
+                </div>
+
+                <form th:action="@{/suppliers/profile}" method="POST" th:object="${supplier}">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Company Name</label>
+                            <input type="text" th:field="*{name}" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Business Category</label>
+                            <input type="text" th:field="*{category}" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Contact Person</label>
+                            <input type="text" name="fullName" th:value="${user.fullName}" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" th:value="${user.email}" class="form-control" disabled>
+                            <span style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.5rem; display: block;">Contact admin to change email</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone Number</label>
+                            <input type="text" name="phone" th:value="${user.phone}" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Office Address</label>
+                            <input type="text" name="address" th:value="${user.address}" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end;">
+                        <button type="submit" class="btn-save">
+                            <i data-lucide="save"></i>
+                            Update Profile
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Danger Zone -->
+                <div style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid rgba(239, 68, 68, 0.2);">
+                    <h4 style="color: #ef4444; margin: 0 0 1rem; font-size: 1.1rem; font-weight: 800; display: flex; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="trash-2" style="width: 18px;"></i> Danger Zone
+                    </h4>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+                        Once you delete your supplier account, all your contracts, supply offers, and pending orders will be permanently removed. This action cannot be undone.
+                    </p>
+                    <form th:action="@{/suppliers/profile/delete}" method="POST" onsubmit="return confirm('Are you absolutely sure you want to delete your supplier account? This will remove all your data from our marketplace.');">
+                        <button type="submit" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 0.75rem 1.5rem; border-radius: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s;"
+                                onmouseover="this.style.background='#ef4444'; this.style.color='white';"
+                                onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'; this.style.color='#ef4444';">
+                            Delete Supplier Account
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
